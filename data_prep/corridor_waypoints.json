@@ -1,0 +1,56 @@
+{
+  "corridor_name": "OSM way 176911658 \u2014 Ameren (illustrative, OSM-derived)",
+  "voltage_class": "345kV",
+  "total_distance_miles": 31.92,
+  "source": {
+    "provider": "OpenStreetMap via Overpass API",
+    "way_id": 176911658,
+    "tags": {
+      "voltage": "345000",
+      "operator": "Ameren",
+      "ref": ""
+    }
+  },
+  "waypoints": [
+    {
+      "lat": 38.273142,
+      "lon": -89.792487,
+      "label": "Start"
+    },
+    {
+      "lat": 38.273195,
+      "lon": -89.795684,
+      "label": "Bend 1"
+    },
+    {
+      "lat": 38.341574,
+      "lon": -89.799192,
+      "label": "Bend 2"
+    },
+    {
+      "lat": 38.342275,
+      "lon": -89.79966,
+      "label": "Bend 3"
+    },
+    {
+      "lat": 38.506558,
+      "lon": -90.089051,
+      "label": "Bend 4"
+    },
+    {
+      "lat": 38.564814,
+      "lon": -90.200717,
+      "label": "Bend 5"
+    },
+    {
+      "lat": 38.566402,
+      "lon": -90.201134,
+      "label": "Bend 6"
+    },
+    {
+      "lat": 38.567992,
+      "lon": -90.199021,
+      "label": "End"
+    }
+  ]
+}
