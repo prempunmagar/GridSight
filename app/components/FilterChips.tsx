@@ -48,7 +48,7 @@ export default function FilterChips({
             className={
               "h-7 inline-flex items-center gap-1.5 px-2 rounded-full text-[11px] font-medium transition-colors " +
               (isActive
-                ? "bg-ink-primary text-white border border-ink-primary"
+                ? "bg-slate-900 text-white border border-slate-900"
                 : "bg-surface-panel text-ink-primary border border-border hover:bg-surface-subtle")
             }
           >

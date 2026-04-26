@@ -67,7 +67,7 @@ export default function Timeline({ findings, totalSeconds, selectedId, onSelect 
       <div className="relative flex-1 px-3 pb-1.5">
         {selected && (
           <div
-            className="absolute top-0 bottom-1.5 w-px bg-ink-primary z-10"
+            className="absolute top-0 bottom-1.5 w-px bg-slate-900 z-10"
             style={{ left: `calc(0.75rem + ${scrubPct}% - ${scrubPct}% * 24px / 100)` }}
           >
             <div

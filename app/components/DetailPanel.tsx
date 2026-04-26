@@ -177,7 +177,7 @@ export default function DetailPanel({ finding, voltageClass, onClose }: Props) {
         <button
           type="button"
           onClick={() => window.print()}
-          className="h-9 inline-flex items-center justify-center gap-2 rounded-md bg-ink-primary text-white text-[12px] font-medium hover:bg-black transition-colors"
+          className="h-9 inline-flex items-center justify-center gap-2 rounded-md bg-slate-900 text-white text-[12px] font-medium hover:bg-black transition-colors"
         >
           <ExternalLink size={13} />
           Generate work order
