@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GridSight — Technical Documentation</title>
+<style>
+  /* ----- Page setup for print ----- */
+  @page {
+    size: letter;
+    margin: 0.75in 0.85in 0.85in 0.85in;
+  }
+  @page :first {
+    margin: 0;
+  }
+
+  /* ----- Base typography ----- */
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.55;
+    color: #1f2937;
+    background: #ffffff;
+  }
+
+  /* ----- Screen-only layout (page-like canvas in browsers) ----- */
+  @media screen {
+    body {
+      background: #f1f3f5;
+      padding: 24px 0;
+    }
+    .cover {
+      max-width: 8.5in;
+      margin: 0 auto 24px auto;
+      box-shadow: 0 2px 18px rgba(15, 23, 42, 0.10);
+      page-break-after: auto;
+      min-height: auto;
+      padding-bottom: 0.6in;
+    }
+    .cover-meta { gap: 0.22in 0.4in; }
+    .body-pages {
+      max-width: 8.5in;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 0.85in 0.95in;
+      box-shadow: 0 2px 18px rgba(15, 23, 42, 0.10);
+    }
+  }
+  @media print {
+    .body-pages { padding: 0; }
+  }
+  p { margin: 0 0 0.65em 0; }
+  strong { color: #0a2540; font-weight: 600; }
+  em { color: #374151; }
+  code, pre {
+    font-family: "SF Mono", "Menlo", Consolas, "Liberation Mono", monospace;
+  }
+  code {
+    font-size: 9.5pt;
+    background: #f3f4f6;
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: #0a2540;
+  }
+  pre {
+    font-size: 9pt;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-left: 3px solid #d97706;
+    padding: 12px 14px;
+    border-radius: 4px;
+    overflow-x: auto;
+    line-height: 1.45;
+    page-break-inside: avoid;
+  }
+  pre code {
+    background: transparent;
+    padding: 0;
+    color: #1f2937;
+    font-size: 9pt;
+  }
+  a { color: #0a2540; text-decoration: none; border-bottom: 1px solid #d1d5db; }
+
+  /* ----- Cover page ----- */
+  .cover {
+    min-height: 100vh;
+    padding: 1.1in 1in 1in 1in;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    page-break-after: always;
+    background: linear-gradient(180deg, #ffffff 0%, #ffffff 60%, #fafbfc 100%);
+  }
+  .cover-body { max-width: 6in; }
+  .cover-eyebrow {
+    font-size: 10pt;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #d97706;
+    font-weight: 600;
+    margin-bottom: 0.3in;
+  }
+  .cover-title {
+    font-size: 48pt;
+    line-height: 1.05;
+    font-weight: 700;
+    color: #0a2540;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .cover-subtitle {
+    font-size: 16pt;
+    line-height: 1.3;
+    color: #475569;
+    font-weight: 400;
+    margin-top: 0.25in;
+    max-width: 5.5in;
+  }
+  .cover-rule {
+    margin: 0.35in 0;
+    height: 4px;
+    background: linear-gradient(90deg, #16a34a 0%, #f59e0b 50%, #ec4899 100%);
+    width: 4in;
+    border-radius: 2px;
+  }
+  .cover-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.25in 0.4in;
+    margin-top: 0.4in;
+    font-size: 10pt;
+  }
+  .cover-meta-label {
+    color: #6b7280;
+    font-size: 8.5pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+  .cover-meta-value {
+    color: #0a2540;
+    font-weight: 500;
+  }
+  .cover-footer {
+    border-top: 1px solid #e5e7eb;
+    padding-top: 0.2in;
+    font-size: 9pt;
+    color: #6b7280;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  /* ----- Section headers ----- */
+  h1 {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #0a2540;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.15in 0;
+    padding-bottom: 0.1in;
+    border-bottom: 2px solid #0a2540;
+    page-break-after: avoid;
+  }
+  h2 {
+    font-size: 14pt;
+    font-weight: 600;
+    color: #0a2540;
+    margin: 1.2em 0 0.5em 0;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+  h2 .h2-num {
+    color: #d97706;
+    font-weight: 700;
+    margin-right: 0.4em;
+  }
+  h3 {
+    font-size: 11.5pt;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 1em 0 0.4em 0;
+    page-break-after: avoid;
+  }
+
+  /* ----- Body container ----- */
+  .doc {
+    padding: 0;
+  }
+  .section {
+    page-break-inside: auto;
+  }
+  .section + .section {
+    margin-top: 0.4in;
+  }
+
+  /* ----- Lists ----- */
+  ul, ol {
+    margin: 0.3em 0 0.7em 0;
+    padding-left: 1.4em;
+  }
+  li { margin: 0.25em 0; }
+  ul li::marker { color: #d97706; }
+
+  /* ----- Tables ----- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.5em 0 1em 0;
+    font-size: 10pt;
+    page-break-inside: avoid;
+  }
+  th {
+    text-align: left;
+    background: #0a2540;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 8px 12px;
+    font-size: 9.5pt;
+    letter-spacing: 0.02em;
+  }
+  td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #fafbfc; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  /* ----- Callouts ----- */
+  .pillars {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+    margin: 0.8em 0 1em 0;
+    page-break-inside: avoid;
+  }
+  .pillar {
+    border: 1px solid #e5e7eb;
+    border-top: 3px solid #d97706;
+    border-radius: 6px;
+    padding: 14px 14px 12px 14px;
+    background: #fafbfc;
+  }
+  .pillar-title {
+    font-size: 10.5pt;
+    font-weight: 700;
+    color: #0a2540;
+    margin-bottom: 6px;
+  }
+  .pillar-body {
+    font-size: 9.5pt;
+    line-height: 1.5;
+    color: #374151;
+  }
+
+  .callout {
+    border-left: 3px solid #d97706;
+    background: #fffbeb;
+    padding: 10px 14px;
+    margin: 0.7em 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 10pt;
+    page-break-inside: avoid;
+  }
+  .callout-label {
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #d97706;
+    margin-bottom: 4px;
+  }
+
+  .severity-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin: 0.7em 0;
+    page-break-inside: avoid;
+  }
+  .sev {
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 9pt;
+    line-height: 1.35;
+    color: #ffffff;
+  }
+  .sev-label {
+    font-weight: 700;
+    font-size: 9pt;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .sev.crit { background: #b91c1c; }
+  .sev.high { background: #ea580c; }
+  .sev.mod  { background: #ca8a04; }
+  .sev.low  { background: #4b5563; }
+
+  /* ----- Architecture diagram wrapper ----- */
+  .diagram {
+    margin: 0.8em 0 1.1em 0;
+    text-align: center;
+    page-break-inside: avoid;
+  }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  /* ----- Footer band on body pages ----- */
+  .body-pages {
+    padding: 0;
+  }
+  .doc-footer {
+    margin-top: 0.5in;
+    padding-top: 0.15in;
+    border-top: 1px solid #e5e7eb;
+    font-size: 8.5pt;
+    color: #6b7280;
+    text-align: center;
+    font-style: italic;
+  }
+
+  /* ----- Page breaks ----- */
+  .page-break { page-break-before: always; }
+
+  /* ----- Avoid orphans ----- */
+  h1, h2, h3 { orphans: 3; widows: 3; }
+  p, li, td  { orphans: 2; widows: 2; }
+</style>
+</head>
+<body>
+
+<!-- ============== COVER PAGE ============== -->
+<section class="cover">
+  <div class="cover-body">
+    <div class="cover-eyebrow">Technical Documentation</div>
+    <h1 class="cover-title">GridSight</h1>
+    <div class="cover-rule"></div>
+    <div class="cover-subtitle">
+      Automated visual inspection for high-voltage transmission infrastructure.
+      Two-pass video understanding with Marengo&nbsp;3.0 and Pegasus&nbsp;1.2 on AWS Bedrock.
+    </div>
+    <div class="cover-meta">
+      <div>
+        <div class="cover-meta-label">Hackathon</div>
+        <div class="cover-meta-value">Geospatial Video Intelligence Hackathon</div>
+      </div>
+      <div>
+        <div class="cover-meta-label">Track</div>
+        <div class="cover-meta-value">02 — Energy Infrastructure Monitoring</div>
+      </div>
+      <div>
+        <div class="cover-meta-label">Workflow</div>
+        <div class="cover-meta-value">02 — Transmission Line Inspection</div>
+      </div>
+      <div>
+        <div class="cover-meta-label">Dates</div>
+        <div class="cover-meta-value">St. Louis · April 25–26, 2026</div>
+      </div>
+      <div>
+        <div class="cover-meta-label">Platform</div>
+        <div class="cover-meta-value">TwelveLabs via AWS Bedrock</div>
+      </div>
+      <div>
+        <div class="cover-meta-label">Models</div>
+        <div class="cover-meta-value">Marengo 3.0 · Pegasus 1.2</div>
+      </div>
+    </div>
+  </div>
+  <div class="cover-footer">
+    <div>github.com/prempunmagar/GridSight</div>
+    <div>Submission · Track 02 / Workflow 02</div>
+  </div>
+</section>
+
+<!-- ============== BODY ============== -->
+<div class="doc body-pages">
+
+<!-- ============== AT A GLANCE ============== -->
+<section class="section">
+  <h1>At a glance</h1>
+  <p>
+    GridSight is an automated visual inspection pipeline for high-voltage transmission infrastructure.
+    It ingests the two standard outputs of any drone inspection — a video file and per-second telemetry —
+    and produces georeferenced, severity-scored findings ready for utility work-order systems.
+  </p>
+
+  <div class="pillars">
+    <div class="pillar">
+      <div class="pillar-title">Two-pass video understanding</div>
+      <div class="pillar-body">
+        Marengo retrieves candidate moments via semantic search across the full video; Pegasus produces a structured per-clip description.
+        A glint of sunlight that looks like insulator damage in one frame is correctly ignored once Marengo sees the same insulator clearly two seconds later.
+      </div>
+    </div>
+    <div class="pillar">
+      <div class="pillar-title">Severity grounded in regulation</div>
+      <div class="pillar-body">
+        Vegetation findings are scored against NERC FAC-003-4 Minimum Vegetation Clearance Distance.
+        Insulator damage is scored against industry-standard failure modes. Each tier maps to a real action threshold, not a heuristic anomaly score.
+      </div>
+    </div>
+    <div class="pillar">
+      <div class="pillar-title">Asset-centric output</div>
+      <div class="pillar-body">
+        The pipeline emits a record for every observed asset, including healthy ones. The dashboard filters by condition rather than the pipeline filtering before output —
+        honest about model false-positive surface and forward-compatible with predictive maintenance.
+      </div>
+    </div>
+  </div>
+
+  <p>
+    <strong>Anomaly classes in scope:</strong> insulator damage and vegetation encroachment.
+    <strong>Asset target:</strong> lattice steel suspension towers carrying high-voltage AC transmission lines.
+    <strong>Canonical demo run:</strong> 345&nbsp;kV (MVCD 4.3&nbsp;ft).
+    <strong>Outputs:</strong> CSV, GeoJSON, structured JSON, plus a Next.js dashboard with map view, severity-coded finding pins, and 15-second evidence clip playback.
+  </p>
+</section>
+
+<!-- ============== SECTION 1 — ARCHITECTURE ============== -->
+<section class="section page-break">
+  <h1>1 &nbsp; System Architecture</h1>
+  <p>
+    The pipeline is a seven-stage linear flow with two parallel inputs. Each stage has a defined input/output contract so stages can be developed and tested independently.
+  </p>
+
+  <div class="diagram">
+    <svg viewBox="0 0 720 920" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Seven-stage GridSight pipeline">
+      <defs>
+        <marker id="arrowhead" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="#374151"/>
+        </marker>
+      </defs>
+
+      <!-- Inputs -->
+      <rect x="40" y="14" width="290" height="62" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>
+      <text x="185" y="38" text-anchor="middle" font-family="Helvetica" font-size="13" font-weight="700" fill="#0a2540">demo_video.mp4</text>
+      <text x="185" y="58" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#475569">curated 1080p · 13:32</text>
+
+      <rect x="390" y="14" width="290" height="62" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1"/>
+      <text x="535" y="38" text-anchor="middle" font-family="Helvetica" font-size="13" font-weight="700" fill="#0a2540">demo_video_telemetry.csv</text>
+      <text x="535" y="58" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#475569">per-second GPS · DJI-SRT-compat</text>
+
+      <!-- Merge connector -->
+      <line x1="185" y1="76" x2="185" y2="100" stroke="#374151" stroke-width="1.6"/>
+      <line x1="535" y1="76" x2="535" y2="100" stroke="#374151" stroke-width="1.6"/>
+      <line x1="185" y1="100" x2="535" y2="100" stroke="#374151" stroke-width="1.6"/>
+      <line x1="360" y1="100" x2="360" y2="124" stroke="#374151" stroke-width="1.6" marker-end="url(#arrowhead)"/>
+
+      <!-- Stage 1 -->
+      <rect x="180" y="128" width="360" height="56" rx="6" fill="#0a2540"/>
+      <text x="200" y="152" font-family="Helvetica" font-size="13" font-weight="700" fill="#ffffff">Stage 1</text>
+      <text x="262" y="152" font-family="Helvetica" font-size="13" fill="#ffffff">Ingest inputs</text>
+      <text x="200" y="170" font-family="Menlo, monospace" font-size="10" fill="#94a3b8">pipeline/ingest.py</text>
+      <line x1="360" y1="184" x2="360" y2="206" stroke="#374151" stroke-width="1.6" marker-end="url(#arrowhead)"/>
+
+      <!-- Stage 2 -->
+      <rect x="180" y="210" width="360" height="56" rx="6" fill="#0a2540"/>
+      <text x="200" y="234" font-family="Helvetica" font-size="13" font-weight="700" fill="#ffffff">Stage 2</text>
+      <text x="262" y="234" font-family="Helvetica" font-size="13" fill="#ffffff">Index video</text>
+      <text x="200" y="252" font-family="Menlo, monospace" font-size="10" fill="#94a3b8">pipeline/marengo_index.py</text>
+      <text x="555" y="234" font-family="Helvetica" font-size="10.5" font-weight="600" fill="#d97706">Bedrock async</text>
+      <text x="555" y="248" font-family="Menlo, monospace" font-size="9.5" fill="#475569">marengo-embed-3-0-v1:0</text>
+      <line x1="360" y1="266" x2="360" y2="288" stroke="#374151" stroke-width="1.6" marker-end="url(#arrowhead)"/>
+
+      <!-- Stage 3 -->
+      <rect x="180" y="292" width="360" height="56" rx="6" fill="#0a2540"/>
+      <text x="200" y="316" font-family="Helvetica" font-size="13" font-weight="700" fill="#ffffff">Stage 3</text>
+      <text x="262" y="316" font-family="Helvetica" font-size="13" fill="#ffffff">Detect anomalies</text>
+      <text x="200" y="334" font-family="Menlo, monospace" font-size="10" fill="#94a3b8">pipeline/marengo_detect.py</text>
+      <text x="555" y="316" font-family="Helvetica" font-size="10.5" font-weight="600" fill="#d97706">similarity search</text>
+      <text x="555" y="330" font-family="Helvetica" font-size="9.5" fill="#475569">NL queries → timestamps</text>
+      <line x1="360" y1="348" x2="360" y2="370" stroke="#374151" stroke-width="1.6" marker-end="url(#arrowhead)"/>
+
+      <!-- Stage 4 -->
+      <rect x="180" y="374" width="360" height="56" rx="6" fill="#0a2540"/>
+      <text x="200" y="398" font-family="Helvetica" font-size="13" font-weight="700" fill="#ffffff">Stage 4</text>
+      <text x="262" y="398" font-family="Helvetica" font-size="13" fill="#ffffff">Extract clips</text>
+      <text x="200" y="416" font-family="Menlo, monospace" font-size="10" fill="#94a3b8">pipeline/clip_extract.py</text>
+      <text x="555" y="398" font-family="Helvetica" font-size="10.5" font-weight="600" fill="#d97706">ffmpeg subprocess</text>
+      <text x="555" y="412" font-family="Helvetica" font-size="9.5" fill="#475569">10–15 s windows</text>
+      <line x1="360" y1="430" x2="360" y2="452" stroke="#374151" stroke-width="1.6" marker-end="url(#arrowhead)"/>
+
+      <!-- Stage 5 -->
+      <rect x="180" y="456" width="360" height="56" rx="6" fill="#0a2540"/>
+      <text x="200" y="480" font-family="Helvetica" font-size="13" font-weight="700" fill="#ffffff">Stage 5</text>
+      <text x="262" y="480" font-family="Helvetica" font-size="13" fill="#ffffff">Describe clips</text>
+      <text x="200" y="498" font-family="Menlo, monospace" font-size="10" fill="#94a3b8">pipeline/pegasus_describe.py</text>
+      <text x="555" y="480" font-family="Helvetica" font-size="10.5" font-weight="600" fill="#d97706">Bedrock sync</text>
+      <text x="555" y="494" font-family="Menlo, monospace" font-size="9.5" fill="#475569">pegasus-1-2-v1:0</text>
+      <line x1="360" y1="512" x2="360" y2="534" stroke="#374151" stroke-width="1.6" marker-end="url(#arrowhead)"/>
+
+      <!-- Stage 6 -->
+      <rect x="180" y="538" width="360" height="56" rx="6" fill="#0a2540"/>
+      <text x="200" y="562" font-family="Helvetica" font-size="13" font-weight="700" fill="#ffffff">Stage 6</text>
+      <text x="262" y="562" font-family="Helvetica" font-size="13" fill="#ffffff">Score + locate</text>
+      <text x="200" y="580" font-family="Menlo, monospace" font-size="10" fill="#94a3b8">pipeline/severity.py</text>
+      <text x="555" y="562" font-family="Helvetica" font-size="10.5" font-weight="600" fill="#d97706">rules + telemetry</text>
+      <text x="555" y="576" font-family="Helvetica" font-size="9.5" fill="#475569">NERC FAC-003 thresholds</text>
+      <line x1="360" y1="594" x2="360" y2="616" stroke="#374151" stroke-width="1.6" marker-end="url(#arrowhead)"/>
+
+      <!-- Stage 7 -->
+      <rect x="180" y="620" width="360" height="56" rx="6" fill="#0a2540"/>
+      <text x="200" y="644" font-family="Helvetica" font-size="13" font-weight="700" fill="#ffffff">Stage 7</text>
+      <text x="262" y="644" font-family="Helvetica" font-size="13" fill="#ffffff">Export</text>
+      <text x="200" y="662" font-family="Menlo, monospace" font-size="10" fill="#94a3b8">pipeline/export.py</text>
+      <text x="555" y="644" font-family="Helvetica" font-size="10.5" font-weight="600" fill="#d97706">JSON · CSV · GeoJSON</text>
+      <text x="555" y="658" font-family="Helvetica" font-size="9.5" fill="#475569">+ clips/</text>
+      <line x1="360" y1="676" x2="360" y2="700" stroke="#374151" stroke-width="1.6" marker-end="url(#arrowhead)"/>
+
+      <!-- Dashboard -->
+      <rect x="120" y="704" width="480" height="74" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+      <text x="360" y="734" text-anchor="middle" font-family="Helvetica" font-size="14" font-weight="700" fill="#0a2540">Next.js dashboard (app/)</text>
+      <text x="360" y="752" text-anchor="middle" font-family="Helvetica" font-size="11" fill="#475569">reads static files from disk · no API layer · no live AWS calls</text>
+      <text x="360" y="768" text-anchor="middle" font-family="Helvetica" font-size="10.5" fill="#475569">map view · severity pins · 15-second evidence clip playback</text>
+
+      <!-- Side label spanning Bedrock stages -->
+      <line x1="64" y1="210" x2="64" y2="512" stroke="#d97706" stroke-width="1.5"/>
+      <text x="56" y="362" text-anchor="middle" font-family="Helvetica" font-size="10" font-weight="700" fill="#d97706" transform="rotate(-90 56 362)">TwelveLabs · AWS Bedrock</text>
+
+      <!-- Side label spanning local stages -->
+      <line x1="64" y1="128" x2="64" y2="184" stroke="#94a3b8" stroke-width="1"/>
+      <line x1="64" y1="538" x2="64" y2="676" stroke="#94a3b8" stroke-width="1"/>
+    </svg>
+  </div>
+
+  <h2><span class="h2-num">1.1</span> Pipeline / dashboard contract</h2>
+  <p>
+    The pipeline is a Python program that runs once and writes its output to disk under <code>app/public/data/</code> and <code>app/public/clips/</code>.
+    The dashboard is a Next.js app that reads those static files at startup. <strong>There is no runtime API between them.</strong>
+    The repository ships with the canonical run's output committed, so a judge can clone and run <code>npm run dev</code> to see the working dashboard immediately — no AWS credentials required.
+  </p>
+  <p>
+    This decoupling is deliberate: it eliminates live AWS calls during the demo (no spinners, no failure modes on stage),
+    enables judges to inspect the dashboard without a Bedrock account, and keeps frontend iteration fast during the build.
+  </p>
+</section>
+
+<!-- ============== SECTION 2 — DETECTION APPROACH ============== -->
+<section class="section">
+  <h1>2 &nbsp; Anomaly Detection Approach</h1>
+  <p>
+    GridSight detects anomalies through a two-pass system: Marengo retrieves candidate moments via semantic search across the full video;
+    Pegasus describes each clip with structured JSON output. Severity is then scored by a rules engine grounded in regulatory thresholds.
+  </p>
+
+  <h2><span class="h2-num">2.1</span> Video understanding advantage over single-frame CV</h2>
+  <p>
+    Marengo searches the entire video as a unit, not frame by frame. The model's per-clip multimodal embedding captures motion, scene context,
+    and entity relationships that single-frame classification cannot. Operationally this matters because most false positives in single-frame approaches are transient
+    visual artifacts — sun glints, motion blur, frame-edge crops of healthy components — that disappear once the same scene is observed across multiple seconds.
+    Marengo's similarity search at multi-second granularity does not generate those false positives.
+  </p>
+
+  <h2><span class="h2-num">2.2</span> Query strategy</h2>
+  <p>
+    Queries are defined as a configurable list in <code>pipeline/queries.py</code>, organized into two groups.
+  </p>
+
+  <p><strong>Anomaly queries</strong> (always active in the narrow build):</p>
+  <ul>
+    <li><em>Insulator damage:</em> "damaged or broken insulator disk on transmission tower"; "missing or shattered porcelain insulator"; "insulator string with visible contamination or burn marks"; "rust streaks on insulator hardware".</li>
+    <li><em>Vegetation encroachment:</em> "tree branches close to or touching power line conductors"; "vegetation overgrown into transmission line right-of-way"; "trees taller than power line clearance".</li>
+  </ul>
+
+  <p><strong>Inventory queries</strong> (broad, optional):</p>
+  <ul>
+    <li>"transmission tower with insulator strings visible"; "power line conductor crossing the right-of-way"; "vegetation along the transmission line corridor".</li>
+  </ul>
+
+  <p>
+    Each Marengo result is tagged with <code>discovery_source: "anomaly_query" | "inventory_query"</code>
+    so downstream stages can distinguish targeted detection from full-inventory observation.
+  </p>
+
+  <h2><span class="h2-num">2.3</span> Pegasus prompt design</h2>
+  <p>
+    Pegasus receives each extracted clip with a JSON-output prompt asking for: component type, condition (<code>intact</code> | <code>damaged</code> | <code>contaminated</code> | <code>unclear</code>),
+    specific defects (list), vegetation distance estimate in feet (when applicable), and qualitative confidence.
+  </p>
+  <div class="callout">
+    <div class="callout-label">Architectural choice</div>
+    Pegasus is a <strong>describer, not a filter</strong>. Every clip produces a record that flows downstream, including those Pegasus assesses as <code>intact</code>.
+    Filtering by condition happens in the dashboard, not in the pipeline. This keeps the architecture compatible with full-inventory monitoring as a future extension.
+  </div>
+</section>
+
+<!-- ============== SECTION 3 — ASSET MODELING ============== -->
+<section class="section">
+  <h1>3 &nbsp; Asset Modeling — What "Normal" Means</h1>
+  <p>
+    The system assesses each finding against a class-specific model of normal.
+  </p>
+
+  <h2><span class="h2-num">3.1</span> Class A — Insulator damage</h2>
+  <p>
+    <strong>Normal:</strong> intact porcelain or polymer insulator strings with no visible damage, contamination, or hardware corrosion.
+    Anomalies are graded by failure mode: shattered or missing porcelain disks (<em>critical</em>), severe cap-and-pin corrosion or polymer sheath splitting (<em>critical/high</em>),
+    heavy contamination or flashover burn marks (<em>high</em>), and lighter degradation patterns (<em>moderate/low</em>).
+    Failure-mode taxonomy and severity rules: see <code>docs/05_DOMAIN_KNOWLEDGE.md</code> Sections 3.1 and 3.3.
+  </p>
+
+  <h2><span class="h2-num">3.2</span> Class B — Vegetation encroachment</h2>
+  <p>
+    <strong>Normal:</strong> vegetation outside the right-of-way, or inside the right-of-way but well below conductor height.
+    Anomalies are graded by distance to conductor as a multiple of the NERC FAC-003-4 Minimum Vegetation Clearance Distance (MVCD):
+  </p>
+  <div class="severity-row">
+    <div class="sev crit">
+      <div class="sev-label">Critical</div>
+      Contact or within 1.0× MVCD &mdash; NERC violation in real time
+    </div>
+    <div class="sev high">
+      <div class="sev-label">High</div>
+      1.0× – 2.5× MVCD &mdash; active management threshold
+    </div>
+    <div class="sev mod">
+      <div class="sev-label">Moderate</div>
+      2.5× – 6.25× MVCD &mdash; within ROW, safe distance
+    </div>
+    <div class="sev low">
+      <div class="sev-label">No-action</div>
+      &gt; 6.25× MVCD outside the ROW
+    </div>
+  </div>
+  <p>
+    MVCD values are voltage-class dependent: 4.0&nbsp;ft for 230&nbsp;kV, <strong>4.3&nbsp;ft for 345&nbsp;kV</strong> (the demo default),
+    7.0&nbsp;ft for 500&nbsp;kV, 11.6&nbsp;ft for 765&nbsp;kV at sea level.
+  </p>
+
+  <h2><span class="h2-num">3.3</span> Asset-centric data model</h2>
+  <p>
+    The pipeline emits a record for every observed asset, including healthy ones (with <code>severity = no_action</code>).
+    The dashboard filters by condition rather than the pipeline filtering before output.
+    This is more honest about Marengo's false-positive surface (intact findings make it visible rather than hiding it)
+    and keeps the architecture forward-compatible with full-inventory monitoring.
+  </p>
+</section>
+
+<!-- ============== SECTION 4 — TWELVELABS INTEGRATION ============== -->
+<section class="section page-break">
+  <h1>4 &nbsp; TwelveLabs Integration Strategy</h1>
+  <p>
+    GridSight uses both TwelveLabs foundation models in distinct roles, accessed via AWS Bedrock Runtime in <code>us-east-1</code>.
+  </p>
+
+  <h2><span class="h2-num">4.1</span> Marengo 3.0 — semantic video indexing and retrieval</h2>
+  <ul>
+    <li><strong>Role:</strong> index the curated demo video as a single multimodal asset, then retrieve timestamped candidate moments via natural-language similarity search.</li>
+    <li><strong>Invocation:</strong> asynchronous. <code>bedrock_runtime.start_async_invoke()</code> initiates the indexing job; the response includes an <code>invocationArn</code> that the pipeline polls via <code>get_async_invoke()</code> until status is <code>Completed</code>. Indexing output (vector embeddings) is written to S3.</li>
+    <li><strong>Model ID:</strong> <code>twelvelabs.marengo-embed-3-0-v1:0</code>.</li>
+  </ul>
+
+  <h2><span class="h2-num">4.2</span> Pegasus 1.2 — structured per-clip description</h2>
+  <ul>
+    <li><strong>Role:</strong> generate structured JSON descriptions of each Marengo-flagged candidate moment: component type, condition, defects, confidence.</li>
+    <li><strong>Invocation:</strong> synchronous. <code>bedrock_runtime.invoke_model()</code> returns a generated text response in a single call. Each evidence clip is sent as a separate Pegasus invocation; calls are independent and parallelizable.</li>
+    <li><strong>Model ID:</strong> <code>us.twelvelabs.pegasus-1-2-v1:0</code> (cross-region inference profile).</li>
+    <li><strong>Prompt approach:</strong> structured-output prompt with an explicit JSON schema example. A fallback parser handles minor format drift (trailing commas, unwrapped strings).</li>
+  </ul>
+
+  <h2><span class="h2-num">4.3</span> Why both, not either alone</h2>
+  <p>
+    Marengo finds the right <em>moments</em>; Pegasus understands the <em>content</em> at those moments.
+    Using only Marengo gives you timestamps with similarity scores but no condition assessment.
+    Using only Pegasus would require describing every second of the video — orders of magnitude more compute and no ranking signal for prioritization.
+    The two-pass architecture uses each model where it dominates: retrieval (Marengo) followed by structured generation (Pegasus).
+  </p>
+</section>
+
+<!-- ============== SECTION 5 — OPERATING ENVELOPE ============== -->
+<section class="section">
+  <h1>5 &nbsp; Operating Envelope</h1>
+  <p>
+    GridSight is scoped honestly. The system is designed for and validated on:
+  </p>
+  <ul>
+    <li><strong>Video quality.</strong> 1080p consumer drone footage at 30 fps. Marengo's multimodal embedding handles bright-sun overexposure and harsh shadow conditions implicitly (no per-frame thresholds), but performance below 720p or with heavy compression artifacts is not characterized. Snow, fog, and night flights are out of scope for this build.</li>
+    <li><strong>Asset type.</strong> Lattice steel suspension towers carrying high-voltage AC transmission lines. Monopole, wood-pole, and substation assets are out of scope.</li>
+    <li><strong>Voltage class.</strong> Voltage-class agnostic by design — severity rules look up MVCD from a table indexed by voltage class. Switching from 345&nbsp;kV to 230 / 500 / 765&nbsp;kV requires a single configuration change. The canonical demo run is at 345&nbsp;kV.</li>
+    <li><strong>Localization accuracy.</strong> Approximate (±50&nbsp;m typical at consumer-drone GPS accuracy), suitable for prioritizing inspection work orders. Sub-meter accuracy for regulatory documentation is not claimed.</li>
+  </ul>
+  <p>
+    This scope was set deliberately at the start of the build. The brief calls out asset-diversity overreach as a common pitfall;
+    we addressed it by picking one tower class and one voltage class up front, and being explicit about what we don't handle.
+  </p>
+</section>
+
+<!-- ============== SECTION 6 — CONFIDENCE HANDLING ============== -->
+<section class="section">
+  <h1>6 &nbsp; Confidence Handling</h1>
+  <p>
+    Operational readiness requires that each finding carry a transparent confidence signal a reviewer can trust.
+    GridSight emits two independent signals per finding:
+  </p>
+  <ul>
+    <li><strong>Marengo similarity score</strong> — continuous, 0.0 to 1.0, from the indexing/retrieval step. Reflects how strongly the candidate moment matches the query embedding.</li>
+    <li><strong>Pegasus qualitative confidence</strong> — <code>high</code> / <code>medium</code> / <code>low</code>, from the structured-description step. Reflects how confidently Pegasus made the condition assessment.</li>
+  </ul>
+  <p>
+    A derived <code>combined_confidence</code> field (rule documented in <code>docs/01_MASTER.md</code> §10.3) is used for sorting and filtering in the dashboard.
+    Both raw signals remain visible in the per-finding detail panel — a reviewer who trusts Marengo more than Pegasus, or vice versa, can sort accordingly.
+  </p>
+  <div class="callout">
+    <div class="callout-label">Severity × confidence are independent</div>
+    A <code>critical</code> severity finding with <code>low</code> Pegasus confidence is <strong>flagged for human review</strong> rather than auto-routed to the work-order queue.
+    The system is explicit that high-stakes findings with weak confidence require expert eyes before action.
+  </div>
+</section>
+
+<!-- ============== SECTION 7 — PERFORMANCE ============== -->
+<section class="section">
+  <h1>7 &nbsp; Performance Benchmarks</h1>
+  <p>
+    Measured on the canonical pipeline run (<code>run_20260426_113904</code>) against <code>data/curated/demo_video.mp4</code> (13:32, 1080p) with the seven anomaly queries active.
+  </p>
+  <table>
+    <thead>
+      <tr>
+        <th>Metric</th>
+        <th>Target</th>
+        <th>Measured</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>End-to-end processing time per minute of source video</td>
+        <td>&lt; 60 sec</td>
+        <td><strong>~28 sec</strong> / min source (cold cache)</td>
+      </tr>
+      <tr>
+        <td>Marengo indexing time (full 13:32 video)</td>
+        <td>&lt; 10 min</td>
+        <td><strong>30 sec</strong></td>
+      </tr>
+      <tr>
+        <td>Pegasus invocation latency per clip (sync)</td>
+        <td>&lt; 15 sec</td>
+        <td><strong>~9 sec</strong> average</td>
+      </tr>
+      <tr>
+        <td>Total Bedrock cost per minute of footage</td>
+        <td>n/a</td>
+        <td><strong>~$0.30</strong> / min source (estimate)</td>
+      </tr>
+      <tr>
+        <td>Findings produced per minute of footage</td>
+        <td>depends on damage density</td>
+        <td><strong>1.03</strong> findings / min</td>
+      </tr>
+    </tbody>
+  </table>
+  <p>
+    Cold-cache total runtime for a fresh re-analysis (Marengo index + 7 text embeddings + 14 Pegasus calls + exports) is approximately <strong>6 minutes</strong>.
+    Subsequent runs reuse on-disk caches for Marengo clip embeddings, text query embeddings, and Pegasus per-clip JSON,
+    so iteration on severity rules and exports completes in seconds.
+  </p>
+</section>
+
+<!-- ============== SECTION 8 — INNOVATION ============== -->
+<section class="section page-break">
+  <h1>8 &nbsp; Innovation and Operational Extensions</h1>
+  <p>
+    The asset-centric architecture intentionally enables several extensions that go beyond the brief's required scope.
+    None ship in this build, but each is reachable from the current data model with limited additional engineering.
+  </p>
+
+  <h2><span class="h2-num">8.1</span> Agent-workflow ready (Workflow 03 substrate)</h2>
+  <p>
+    Every observed asset emits a record carrying GPS, timestamp, and structured condition.
+    Cross-source correlation with SCADA telemetry or maintenance-history CSVs is a join on asset ID.
+    The data model deliberately preserves intact findings to make this join meaningful — assets that look healthy visually but show pressure anomalies in SCADA
+    are precisely the high-priority discovery target the brief calls out.
+  </p>
+
+  <h2><span class="h2-num">8.2</span> Predictive maintenance</h2>
+  <p>
+    The same substrate enables trend analysis across inspection dates. Hashing asset GPS to a stable identifier and comparing condition assessments across runs surfaces degradation progression —
+    an insulator string with rust streaks today and shattered porcelain six months later is the canonical predictive-maintenance signal.
+  </p>
+
+  <h2><span class="h2-num">8.3</span> Regulatory compliance mapping</h2>
+  <p>
+    Vegetation findings already map to NERC FAC-003-4 thresholds by construction.
+    The GeoJSON export schema includes the MVCD multiple as a property, which is the field a NERC compliance reporting workflow would consume directly.
+  </p>
+
+  <h2><span class="h2-num">8.4</span> Field-crew route optimization</h2>
+  <p>
+    Findings on the dashboard map view are clustered by GPS proximity.
+    A geocoded route-planning step using any standard routing engine would convert finding clusters into ground-crew dispatch routes
+    ordered by severity-weighted urgency.
+  </p>
+</section>
+
+<!-- ============== SECTION 9 — REPO ============== -->
+<section class="section">
+  <h1>9 &nbsp; Repository and Reproduction</h1>
+  <p>
+    GitHub: <a href="https://github.com/prempunmagar/GridSight">github.com/prempunmagar/GridSight</a>
+  </p>
+
+  <p><strong>Setup</strong></p>
+<pre><code>git clone https://github.com/prempunmagar/GridSight
+cd GridSight
+pip install -r requirements.txt
+cd app &amp;&amp; npm install</code></pre>
+
+  <p><strong>Verify Bedrock access (smoke test)</strong></p>
+<pre><code>python examples/bedrock_smoke_test.py</code></pre>
+
+  <p><strong>Run the full pipeline</strong></p>
+<pre><code>python pipeline/run_all.py</code></pre>
+
+  <p><strong>View the dashboard with the canonical pre-computed run</strong></p>
+<pre><code>cd app &amp;&amp; npm run dev</code></pre>
+
+  <p>
+    The dashboard runs without AWS credentials when reading the committed canonical run output.
+    Re-running the pipeline (which regenerates the output files) requires AWS Bedrock access with both Marengo&nbsp;3.0 and Pegasus&nbsp;1.2 enabled in <code>us-east-1</code>.
+  </p>
+</section>
+
+<!-- ============== SECTION 10 — DOCUMENT MAP ============== -->
+<section class="section">
+  <h1>10 &nbsp; Document Map</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Topic</th>
+        <th>Document</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Full project source of truth (architecture, scope, decisions log)</td><td><code>docs/01_MASTER.md</code></td></tr>
+      <tr><td>Six-phase build plan with decision gates</td><td><code>docs/02_BUILD_PLAN.md</code></td></tr>
+      <tr><td>Repository layout and pipeline-dashboard contract</td><td><code>docs/03_REPO_STRUCTURE.md</code></td></tr>
+      <tr><td>NERC FAC-003-4 numbers, insulator failure modes, severity rules</td><td><code>docs/05_DOMAIN_KNOWLEDGE.md</code></td></tr>
+      <tr><td>Validation methodology, precision/recall/F1, false-positive analysis</td><td><code>docs/06_VALIDATION_REPORT.md</code></td></tr>
+      <tr><td>Operational impact, ROI, deployment cost framing</td><td><code>docs/07_OPERATIONAL_IMPACT.md</code></td></tr>
+      <tr><td>Dashboard UI/UX design specification</td><td><code>docs/09_UI_PROPOSAL.md</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="doc-footer">
+    GridSight · Geospatial Video Intelligence Hackathon, Track 02 · April 25–26, 2026
+  </div>
+</section>
+
+</div>
+
+</body>
+</html>

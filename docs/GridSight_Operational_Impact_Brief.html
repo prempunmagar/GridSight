@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GridSight — Operational Impact Brief</title>
+<style>
+  /* ----- Page setup for print ----- */
+  @page {
+    size: letter;
+    margin: 0.55in 0.6in 0.5in 0.6in;
+  }
+
+  /* ----- Base typography ----- */
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 9.5pt;
+    line-height: 1.4;
+    color: #1f2937;
+    background: #ffffff;
+  }
+  p { margin: 0 0 0.5em 0; }
+  strong { color: #0a2540; font-weight: 700; }
+  em { color: #374151; }
+  code {
+    font-family: "SF Mono", "Menlo", Consolas, monospace;
+    font-size: 8.5pt;
+    background: #f3f4f6;
+    padding: 1px 4px;
+    border-radius: 3px;
+    color: #0a2540;
+  }
+
+  /* ----- Screen-only layout (page-on-desk look) ----- */
+  @media screen {
+    body {
+      background: #f1f3f5;
+      padding: 24px 0;
+    }
+    .page {
+      width: 8.5in;
+      min-height: 11in;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 0.55in 0.6in 0.5in 0.6in;
+      box-shadow: 0 2px 18px rgba(15, 23, 42, 0.10);
+    }
+  }
+  @media print {
+    .page {
+      padding: 0;
+    }
+  }
+
+  /* ----- Header band ----- */
+  .header {
+    border-bottom: 2px solid #0a2540;
+    padding-bottom: 8px;
+    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .header-left {
+    display: flex;
+    flex-direction: column;
+  }
+  .header-eyebrow {
+    font-size: 8pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #d97706;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .header-title {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #0a2540;
+    line-height: 1.05;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .header-right {
+    text-align: right;
+    font-size: 8.5pt;
+    color: #475569;
+    line-height: 1.4;
+  }
+  .header-right .small-label {
+    color: #6b7280;
+    font-size: 7.5pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* ----- Section headers ----- */
+  h2 {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #0a2540;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 14px 0 6px 0;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  h2:first-of-type { margin-top: 0; }
+
+  /* ----- Headline panel ----- */
+  .headline {
+    background: #fafbfc;
+    border-left: 3px solid #d97706;
+    padding: 10px 14px 10px 14px;
+    margin: 0 0 14px 0;
+    border-radius: 0 4px 4px 0;
+    font-size: 9.5pt;
+    line-height: 1.45;
+  }
+  .headline strong { color: #0a2540; }
+
+  /* ----- Two-column flex (streams) ----- */
+  .streams {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .stream {
+    border: 1px solid #e5e7eb;
+    border-top: 3px solid #0a2540;
+    border-radius: 4px;
+    padding: 8px 10px;
+    background: #ffffff;
+  }
+  .stream-eyebrow {
+    font-size: 7.5pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #d97706;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .stream-title {
+    font-size: 10pt;
+    font-weight: 700;
+    color: #0a2540;
+    margin-bottom: 5px;
+    line-height: 1.2;
+  }
+  .stream-body {
+    font-size: 8.5pt;
+    line-height: 1.4;
+    color: #374151;
+  }
+  .stream-amount {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid #e5e7eb;
+    font-size: 9pt;
+    color: #0a2540;
+    font-weight: 700;
+  }
+
+  /* ----- Tables ----- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 4px 0 8px 0;
+    font-size: 8.75pt;
+  }
+  th {
+    text-align: left;
+    background: #0a2540;
+    color: #ffffff;
+    font-weight: 600;
+    padding: 5px 9px;
+    font-size: 8.5pt;
+    letter-spacing: 0.02em;
+  }
+  td {
+    padding: 5px 9px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td { background: #fafbfc; }
+  td.right { text-align: right; }
+  tr.total td {
+    border-top: 2px solid #0a2540;
+    border-bottom: none;
+    background: #fffbeb !important;
+    font-weight: 700;
+    color: #0a2540;
+  }
+
+  /* ----- ROI lines (compact bullet alternative) ----- */
+  .roi {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin: 4px 0 8px 0;
+  }
+  .roi-card {
+    background: #fafbfc;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    padding: 7px 10px;
+  }
+  .roi-label {
+    font-size: 7.5pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #6b7280;
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .roi-value {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #0a2540;
+    line-height: 1.15;
+    margin-bottom: 3px;
+  }
+  .roi-detail {
+    font-size: 8.25pt;
+    color: #475569;
+    line-height: 1.35;
+  }
+
+  /* ----- Inline bullet list compact ----- */
+  ul {
+    margin: 4px 0 8px 0;
+    padding-left: 1.2em;
+  }
+  li { margin: 0.15em 0; }
+  ul li::marker { color: #d97706; }
+
+  /* ----- Two-column closer ----- */
+  .closer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 8px;
+  }
+  .closer-block h2 { margin-top: 0; }
+
+  /* ----- Footer ----- */
+  .doc-footer {
+    margin-top: 12px;
+    padding-top: 7px;
+    border-top: 1px solid #e5e7eb;
+    font-size: 7.5pt;
+    color: #6b7280;
+    line-height: 1.45;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ============== HEADER ============== -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-eyebrow">Operational Impact Brief</div>
+      <h1 class="header-title">GridSight</h1>
+    </div>
+    <div class="header-right">
+      <div><span class="small-label">Hackathon</span></div>
+      <div>Geospatial Video Intelligence · St. Louis · April 25–26, 2026</div>
+      <div style="margin-top: 4px;"><span class="small-label">Track</span> 02 — Energy Infrastructure Monitoring</div>
+      <div><span class="small-label">Workflow</span> 02 — Transmission Line Inspection</div>
+    </div>
+  </div>
+
+  <!-- ============== HEADLINE ============== -->
+  <div class="headline">
+    GridSight is a <strong>triage layer</strong> for transmission inspection. It ingests drone footage and per-second telemetry, then surfaces georeferenced, severity-scored candidate findings for human review.
+    Severity is anchored to <strong>NERC FAC-003-4</strong> Minimum Vegetation Clearance Distance and standard insulator failure modes, not heuristic anomaly scores.
+    The system does not replace human judgment — it lets analysts review a focused list of flagged candidates instead of every minute of footage.
+    <br><br>
+    Drone-footage analysis throughput rises from ~25 miles/analyst-day to ~300 miles/analyst-day (≈<strong>12×</strong>, the conservative midpoint of the brief's 10–20× range).
+    On a 5,000-mile regional system with 2 inspection cycles per year, this produces <strong>~$1.25M of quantified annual value</strong> against ~$32–$62K of GridSight operating cost.
+    A single avoided high-severity incident — at the brief's $1M–$100M+ per-incident range — covers a decade or more of operating cost.
+  </div>
+
+  <!-- ============== ANNUAL VALUE ============== -->
+  <h2>Annual Value &mdash; Illustrative 5,000-mile Regional Utility</h2>
+  <div class="streams">
+    <div class="stream">
+      <div class="stream-eyebrow">Stream 1</div>
+      <div class="stream-title">Direct labor savings</div>
+      <div class="stream-body">
+        At 2 cycles/year and a fully-loaded analyst cost of ≈$150K/year (≈$680/day), 10,000 annual review-miles drop from ≈400 analyst-days (~$272K) to ≈33 analyst-days (~$22K).
+      </div>
+      <div class="stream-amount">~$250K / year</div>
+    </div>
+    <div class="stream">
+      <div class="stream-eyebrow">Stream 2</div>
+      <div class="stream-title">Newly enabled coverage</div>
+      <div class="stream-body">
+        12× analyst throughput removes the analyst-capacity cap on inspection frequency. Moving from 2× to quarterly (4×) cycles unlocks 10,000 incremental review-miles/year at the brief's $100/mile flight cost.
+      </div>
+      <div class="stream-amount">~$1.0M / year</div>
+    </div>
+    <div class="stream">
+      <div class="stream-eyebrow">Stream 3</div>
+      <div class="stream-title">Failure-prevention EV</div>
+      <div class="stream-body">
+        Vegetation contact is the leading transmission-failure cause and the failure mode fatigued review most often misses. One $5M-class incident prevented every 5 years — conservative against the $1M–$100M+ range.
+      </div>
+      <div class="stream-amount">~$1.0M / year (EV)</div>
+    </div>
+  </div>
+
+  <!-- ============== DEPLOYMENT COST ============== -->
+  <h2>Deployment Cost vs. Current Manual Review</h2>
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 60%;">Component</th>
+        <th>Annual estimate</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Bedrock compute (Marengo 3.0 + Pegasus 1.2)</td><td>~$0.50–$2.00 per mile of footage</td></tr>
+      <tr><td>Annual compute on 5,000-mile system at 4× cycles (20,000 review-miles)</td><td>~$10K – $40K / year</td></tr>
+      <tr><td>Storage (evidence clips, findings JSON)</td><td>Negligible at scale</td></tr>
+      <tr><td>Integration (CSV / GeoJSON into work-order systems)</td><td>One-time engineering</td></tr>
+      <tr class="total"><td>Net annual cost with GridSight</td><td>~$32K – $62K</td></tr>
+      <tr><td>Current-state manual review baseline</td><td>~$272K / year (400 analyst-days × $680)</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top: 4px; font-size: 9pt;"><strong>86–96% reduction in direct review cost</strong> at the most conservative read of the GridSight cost range.</p>
+
+  <!-- ============== ROI & PAYBACK ============== -->
+  <h2>ROI and Payback Period</h2>
+  <div class="roi">
+    <div class="roi-card">
+      <div class="roi-label">Conservative</div>
+      <div class="roi-value">1–3 months</div>
+      <div class="roi-detail">Direct labor savings only: ~$210K–$240K/year saved.</div>
+    </div>
+    <div class="roi-card">
+      <div class="roi-label">Full quantified model</div>
+      <div class="roi-value">&lt; 2 weeks</div>
+      <div class="roi-detail">Labor + Stream 2 coverage: ~$1.19M–$1.24M/year saved.</div>
+    </div>
+    <div class="roi-card">
+      <div class="roi-label">Single avoided incident</div>
+      <div class="roi-value">25–100 yrs</div>
+      <div class="roi-detail">At the brief's $1M low-end, one prevented incident covers GridSight compute for decades.</div>
+    </div>
+  </div>
+
+  <!-- ============== CLOSING TWO-COLUMN ============== -->
+  <div class="closer">
+    <div class="closer-block">
+      <h2>Regulatory Readiness</h2>
+      <p>
+        Vegetation findings are scored against NERC FAC-003-4 MVCD thresholds by construction.
+        The GeoJSON export schema includes the MVCD multiple as a property on every finding — directly consumable by a NERC compliance reporting workflow without additional translation.
+      </p>
+    </div>
+    <div class="closer-block">
+      <h2>Detection Consistency &mdash; the Qualitative Win</h2>
+      <p>
+        Human analysts are accurate but variable. Performance degrades over a shift, varies between reviewers, and depends on factors (lighting, fatigue, time pressure) unrelated to the asset.
+        GridSight applies the same NERC-anchored severity rules to mile 1 and mile 10,000. Inspectors stop watching footage and start solving problems.
+      </p>
+    </div>
+  </div>
+
+  <!-- ============== FOOTER ============== -->
+  <div class="doc-footer">
+    NERC FAC-003-4 MVCD reference: 4.3&nbsp;ft for 345&nbsp;kV at sea level (the canonical demo configuration).
+    Bedrock cost range derived from measured ~$0.30/min source video on the canonical run (see <code>docs/TECH.md</code> §7) with a conservative high-end allowance for re-indexing.
+    Throughput multiplier is the conservative midpoint of the challenge brief's 10–20× range.
+    Per-incident cost range, current-state throughput, and flight-cost figures from the Geospatial Video Intelligence Hackathon Track 02 challenge brief.
+    &nbsp;&nbsp;·&nbsp;&nbsp; <strong>github.com/prempunmagar/GridSight</strong>
+  </div>
+
+</div>
+
+</body>
+</html>

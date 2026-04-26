@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git *)",
+      "Bash(npm --version)",
+      "Bash(ffmpeg -version)",
+      "Bash(npx --yes create-next-app@latest app --typescript --app --tailwind --no-eslint --src-dir false --import-alias \"@/*\" --turbopack false --use-npm --yes)",
+      "Bash(npm install *)",
+      "Bash(mv src/app .)",
+      "Bash(rmdir src *)",
+      "Bash(ffprobe *)",
+      "Bash(.venv/Scripts/python.exe -c \"import pandas, numpy, boto3, dotenv; print\\('deps OK:', pandas.__version__, numpy.__version__, boto3.__version__\\)\")",
+      "Bash(.venv/Scripts/python.exe -m pip install -q -r requirements.txt)",
+      "Bash(.venv/Scripts/python.exe examples/validate_telemetry.py)",
+      "Bash(.venv/Scripts/python.exe examples/validate_ground_truth.py)",
+      "Bash(.venv/Scripts/python.exe -m pytest pipeline/tests/ -v)",
+      "Bash(.venv/Scripts/python.exe -m pytest pipeline/tests/ -q)",
+      "Bash(.venv/Scripts/python.exe -c ' *)",
+      "Bash(mkdir -p out)",
+      "Bash(.venv/Scripts/python.exe -u pipeline/run_all.py)",
+      "Bash(tee out/run_log.txt)",
+      "Bash(rm -f out/run_log.txt)",
+      "Bash(PYTHONPATH=. .venv/Scripts/python.exe -u -m pipeline.run_all)",
+      "WebFetch(domain:api.anthropic.com)",
+      "Bash(curl -s -o /dev/null -w \"  /          HTTP %{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"  /library   HTTP %{http_code}\\\\n\" http://localhost:3000/library)",
+      "Bash(curl -s -o /dev/null -w \"  /dashboard HTTP %{http_code}\\\\n\" http://localhost:3000/dashboard)",
+      "Bash(curl -s -o /dev/null -w \"  POST /api/reanalyze HTTP %{http_code}\\\\n\" -X POST http://localhost:3000/api/reanalyze -d '')",
+      "Bash(tasklist)",
+      "Bash(cmd.exe //c \"tasklist\")",
+      "Bash(cmd.exe //c \"wmic process where \\\\\"name='python.exe'\\\\\" get commandline,processid\")",
+      "Bash(curl -s -X POST http://localhost:3000/api/reanalyze -d '')",
+      "Bash(cmd.exe //c \"tasklist /FI \\\\\"IMAGENAME eq python.exe\\\\\"\")"
+    ]
+  }
+}
