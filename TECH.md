@@ -30,7 +30,7 @@ GridSight operates via a decoupled batch-processing architecture consisting of 7
 1. **Ingest:** We load the video alongside a per-second telemetry CSV. To prove production viability, we wrote a real parser (`scripts/srt_to_csv.py`) capable of extracting this telemetry directly from standard DJI drone SRT export files.
 2. **Index:** Video is indexed in Marengo via Bedrock.
 3. **Detect:** We execute the anomaly queries and apply temporal deduplication (merging hits within 10 seconds of each other).
-4. **Extract:** `ffmpeg` slices the source video into 15-second MP4 evidence clips based on Marengo's timestamps.
+4. **Extract:** `ffmpeg` slices the source video into 12-second MP4 evidence clips based on Marengo's timestamps.
 5. **Describe:** Pegasus parses each clip into a structured condition assessment. 
 6. **Score & Locate:** A rules engine cross-references Pegasus's `specific_defects` against **NERC FAC-003** regulations to assign a severity tier (Critical, High, Moderate, Low). Simultaneously, the script performs a timestamp lookup against the telemetry file to attach GPS latitude, longitude, heading, and altitude.
 7. **Export:** The pipeline emits standard CSV and GeoJSON datasets, alongside static JSON files serving the Next.js dashboard.

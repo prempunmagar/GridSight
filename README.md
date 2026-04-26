@@ -6,23 +6,18 @@
 
 ---
 
-## What this is
 ## Executive Summary
 
-GridSight processes drone footage of high-voltage transmission lines and detects two anomaly classes: **damaged insulators** and **vegetation encroachment**. It uses TwelveLabs Marengo 3.0 and Pegasus 1.2 via AWS Bedrock, attaches GPS from a companion drone telemetry file, and produces a Next.js dashboard with map view, evidence clips, and CSV/GeoJSON exports.
 GridSight is an automated pipeline that processes standard drone inspection inputs (video footage and telemetry data) to detect and locate critical vulnerabilities on high-voltage transmission lines. 
 
-Full project context is in [`docs/01_MASTER.md`](docs/01_MASTER.md). Don't start working without reading at least Sections 1–5 of that doc.
 Built on TwelveLabs Marengo 3.0 and Pegasus 1.2 via AWS Bedrock, GridSight targets two specific, regulation-grounded anomaly classes: **damaged insulators** and **vegetation encroachment** (anchored to NERC FAC-003 standards). It produces a Next.js dashboard featuring a map view, telemetry inspector, click-to-play evidence clips, and enterprise-ready CSV/GeoJSON exports.
 
 **This is an operations console, not a video gallery.** It turns hours of tedious frame-by-frame human review into an actionable, georeferenced list of verifiable findings.
 
 ---
 
-## Run the dashboard (no AWS needed)
 ## Architecture at a Glance
 
-If you just want to see the finished product:
 GridSight operates via a decoupled batch-processing architecture. The Python pipeline runs once, processes the video/telemetry, and writes static JSON and MP4 evidence clips to disk. The Next.js dashboard reads these static files at startup. 
 
 This deliberate separation means **anyone can clone this repo and run the dashboard immediately without AWS credentials**. 
