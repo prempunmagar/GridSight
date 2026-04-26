@@ -6,6 +6,7 @@ export default function Page() {
       title="Technical Documentation"
       filename="TECH.md"
       githubPath="https://github.com/prempunmagar/GridSight/blob/main/docs/TECH.md"
+      nextCta={{ href: "/library", label: "Continue to Library" }}
     />
   );
 }

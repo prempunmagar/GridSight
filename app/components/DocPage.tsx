@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ArrowRight, ExternalLink } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -11,9 +11,10 @@ interface Props {
   filename: string;
   githubPath: string;
   back?: { href: string; label: string };
+  nextCta?: { href: string; label: string };
 }
 
-export default function DocPage({ title, filename, githubPath, back }: Props) {
+export default function DocPage({ title, filename, githubPath, back, nextCta }: Props) {
   const [content, setContent] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,6 +54,14 @@ export default function DocPage({ title, filename, githubPath, back }: Props) {
           >
             <ExternalLink size={13} /> GitHub
           </a>
+          {nextCta && (
+            <Link
+              href={nextCta.href}
+              className="h-8 inline-flex items-center gap-1.5 px-3 rounded-md bg-slate-900 text-white text-[12px] font-medium hover:bg-black"
+            >
+              {nextCta.label} <ArrowRight size={13} />
+            </Link>
+          )}
         </div>
       </header>
 
@@ -64,9 +73,21 @@ export default function DocPage({ title, filename, githubPath, back }: Props) {
         ) : !content ? (
           <div className="text-ink-tertiary text-sm">loading…</div>
         ) : (
-          <article className="prose-doc">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
-          </article>
+          <>
+            <article className="prose-doc">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+            </article>
+            {nextCta && (
+              <div className="mt-12 pt-8 border-t border-border flex items-center justify-end">
+                <Link
+                  href={nextCta.href}
+                  className="h-10 inline-flex items-center gap-2 px-4 rounded-md bg-slate-900 text-white text-[13px] font-medium hover:bg-black"
+                >
+                  {nextCta.label} <ArrowRight size={14} />
+                </Link>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
