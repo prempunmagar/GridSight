@@ -3,44 +3,34 @@
 import type { Finding } from "@/types/findings";
 import { formatLatLon, formatTimestamp, formatHeading } from "@/lib/format";
 
-interface Props {
-  finding: Finding | null;
+export default function TelemetryInspector({
+  finding,
+  voltageClass,
+}: {
+  finding: Finding;
   voltageClass: string;
-}
-
-export default function TelemetryInspector({ finding, voltageClass }: Props) {
-  if (!finding) {
-    return (
-      <div className="text-xs text-text-tertiary px-3 py-4">
-        Select a finding to inspect drone state at that moment.
-      </div>
-    );
-  }
+}) {
   return (
-    <div className="grid grid-cols-3 gap-2 px-3 py-3 bg-subtle rounded-md font-mono text-[11px] leading-tight">
+    <div className="grid grid-cols-3 gap-x-4 bg-surface-subtle border border-border rounded-md px-3 py-2.5 font-mono text-[12px] text-ink-primary leading-tight">
       <div>
-        <div className="text-text-tertiary">timestamp</div>
-        <div className="text-text-primary">{formatTimestamp(finding.timestamp_seconds)}</div>
+        <div className="text-[10px] uppercase tracking-[0.08em] text-ink-tertiary mb-1 font-sans">
+          Time
+        </div>
+        <div>{formatTimestamp(finding.timestamp_seconds)}</div>
       </div>
       <div>
-        <div className="text-text-tertiary">gps</div>
-        <div className="text-text-primary">{formatLatLon(finding.gps_lat, finding.gps_lon)}</div>
+        <div className="text-[10px] uppercase tracking-[0.08em] text-ink-tertiary mb-1 font-sans">
+          Position
+        </div>
+        <div>{formatLatLon(finding.gps_lat, finding.gps_lon).split(", ")[0]}</div>
+        <div>{formatLatLon(finding.gps_lat, finding.gps_lon).split(", ")[1]}</div>
       </div>
       <div>
-        <div className="text-text-tertiary">altitude</div>
-        <div className="text-text-primary">{finding.altitude_m_agl.toFixed(1)} m AGL</div>
-      </div>
-      <div>
-        <div className="text-text-tertiary">heading</div>
-        <div className="text-text-primary">{formatHeading(finding.heading_deg)}</div>
-      </div>
-      <div>
-        <div className="text-text-tertiary">speed</div>
-        <div className="text-text-primary">{finding.ground_speed_mps.toFixed(1)} m/s</div>
-      </div>
-      <div>
-        <div className="text-text-tertiary">voltage</div>
-        <div className="text-text-primary">{voltageClass}</div>
+        <div className="text-[10px] uppercase tracking-[0.08em] text-ink-tertiary mb-1 font-sans">
+          Drone
+        </div>
+        <div>AGL {finding.altitude_m_agl.toFixed(0)} m</div>
+        <div>Heading {formatHeading(finding.heading_deg)}</div>
       </div>
     </div>
   );

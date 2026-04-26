@@ -1,139 +1,204 @@
 "use client";
 
+import { Check, ExternalLink, FileText, Flag, X } from "lucide-react";
+
 import type { Finding } from "@/types/findings";
-import { SEVERITY_COLOR, SEVERITY_LABEL } from "@/lib/severity";
+import { SEVERITY_HEX, SEVERITY_LABEL, confidencePercent } from "@/lib/severity";
 import { findingTitle } from "@/lib/format";
 import EvidenceClipPlayer from "./EvidenceClipPlayer";
 import TelemetryInspector from "./TelemetryInspector";
+import Section from "./Section";
+import ConfRow from "./ConfRow";
 
 interface Props {
   finding: Finding | null;
   voltageClass: string;
+  width: number;
   onClose: () => void;
 }
 
-const REASONING: Record<string, string> = {
-  critical:
-    "Critical — Per the severity rubric (docs/05_DOMAIN_KNOWLEDGE.md §5), this finding indicates loss of mechanical or dielectric integrity, or vegetation within MVCD. Immediate inspection recommended.",
-  high:
-    "High — Active management threshold per FAC-003-4. Schedule remediation within the operator's standard reliability window.",
-  moderate:
-    "Moderate — Inside the right-of-way at safe distance, or moderate equipment degradation. Track and re-inspect.",
-  low:
-    "Low — Minor degradation or vegetation outside the corridor. Logged for trend awareness.",
-  no_action:
-    "No action — Asset assessed as intact. Recorded for full-inventory completeness.",
+const REASONING: Record<string, { word: string; bodyByClass: (klass: string) => string }> = {
+  critical: {
+    word: "Critical",
+    bodyByClass: (klass) =>
+      klass === "vegetation_encroachment"
+        ? "Per NERC FAC-003-4, vegetation inside the Minimum Vegetation Clearance Distance constitutes an active reliability risk. Crew dispatch required."
+        : "Visible fracture or missing disk indicates loss of mechanical and dielectric integrity. Immediate inspection recommended.",
+  },
+  high: {
+    word: "High",
+    bodyByClass: (klass) =>
+      klass === "vegetation_encroachment"
+        ? "Encroachment is outside MVCD but inside the management buffer; risk of progression before next inspection cycle."
+        : "Defect compromises insulator performance under stress conditions. Schedule corrective maintenance within the cycle.",
+  },
+  moderate: {
+    word: "Moderate",
+    bodyByClass: () => "Condition is degraded but not service-affecting. Track and address during routine maintenance.",
+  },
+  low: {
+    word: "Low",
+    bodyByClass: () => "Marginal indication. Re-confirm during the next scheduled inspection.",
+  },
+  no_action: {
+    word: "No action",
+    bodyByClass: () => "Asset assessed as intact. Recorded for full-inventory completeness.",
+  },
 };
 
-export default function DetailPanel({ finding, voltageClass, onClose }: Props) {
+export default function DetailPanel({ finding, voltageClass, width, onClose }: Props) {
   if (!finding) return null;
 
-  const sevColor = SEVERITY_COLOR[finding.severity];
+  const sevColor = SEVERITY_HEX[finding.severity];
   const title = findingTitle(finding.specific_defects, finding.component_type, finding.condition);
+  const reasoning = REASONING[finding.severity];
+  const classLabel =
+    finding.class === "insulator_damage"
+      ? "Insulator damage"
+      : finding.class === "vegetation_encroachment"
+      ? "Vegetation encroachment"
+      : "Other";
+
+  const componentRows: [string, string][] = [
+    ["Component type", finding.component_type.replace("_", " ")],
+    ["Condition", finding.condition.charAt(0).toUpperCase() + finding.condition.slice(1)],
+    ...(finding.specific_defects.length > 0
+      ? ([["Specific defects", finding.specific_defects.join("; ")]] as [string, string][])
+      : []),
+    ...(finding.vegetation_distance_estimate_ft !== null
+      ? ([["Clearance", `${finding.vegetation_distance_estimate_ft} ft (visual estimate)`]] as [string, string][])
+      : []),
+    ["Voltage class", voltageClass],
+  ];
 
   return (
-    <aside className="w-[420px] shrink-0 border-l border-border-default bg-panel flex flex-col h-full">
-      <div className="h-14 px-4 flex items-center justify-between border-b border-border-default sticky top-0 bg-panel">
-        <div className="flex items-center gap-2">
-          <span
-            className="text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded text-white"
-            style={{ background: sevColor }}
-          >
-            {SEVERITY_LABEL[finding.severity]}
-          </span>
-          <span className="text-xs text-text-secondary">{finding.class.replace("_", " ")}</span>
-        </div>
+    <aside
+      key={finding.finding_id}
+      style={{ width }}
+      className="panel-enter shrink-0 bg-surface-panel border border-border rounded-lg flex flex-col overflow-hidden shadow-panel h-full"
+    >
+      <div className="h-14 px-4 flex items-center gap-2 border-b border-border bg-surface-panel">
+        <span
+          className="h-6 inline-flex items-center px-2 rounded-full text-[10px] font-semibold tracking-[0.1em] uppercase text-white"
+          style={{ background: sevColor }}
+        >
+          {SEVERITY_LABEL[finding.severity]}
+        </span>
+        <span className="h-6 inline-flex items-center px-2 rounded-full text-[11px] text-ink-secondary bg-surface-subtle border border-border">
+          {classLabel}
+        </span>
+        <div className="flex-1" />
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close"
-          className="text-text-tertiary hover:text-text-primary text-xl leading-none px-2"
+          aria-label="Close detail panel"
+          className="h-7 w-7 inline-flex items-center justify-center rounded-md text-ink-secondary hover:bg-surface-subtle"
         >
-          ×
+          <X size={15} />
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-5">
-        <div>
-          <div className="text-base font-semibold text-text-primary leading-tight">{title}</div>
-          <div className="text-xs text-text-secondary mt-1">finding · {finding.finding_id}</div>
+      <div className="flex-1 overflow-y-auto thin-scroll">
+        <EvidenceClipPlayer finding={finding} />
+
+        <div className="px-4 mt-6">
+          <TelemetryInspector finding={finding} voltageClass={voltageClass} />
         </div>
 
-        <EvidenceClipPlayer finding={finding} />
-        <TelemetryInspector finding={finding} voltageClass={voltageClass} />
-
-        <section>
-          <div className="text-[10px] uppercase font-semibold tracking-wider text-text-tertiary mb-2">
-            Severity reasoning
-          </div>
-          <p className="text-sm text-text-primary leading-relaxed">{REASONING[finding.severity]}</p>
-          {finding.nerc_citation && (
-            <span className="inline-block mt-2 font-mono text-[10px] px-2 py-0.5 bg-subtle border border-border-default rounded">
-              {finding.nerc_citation}
-            </span>
-          )}
-        </section>
-
-        <section>
-          <div className="text-[10px] uppercase font-semibold tracking-wider text-text-tertiary mb-2">
-            Component details
-          </div>
-          <dl className="grid grid-cols-[140px_1fr] gap-y-1 gap-x-3 text-xs">
-            <dt className="text-text-secondary">Component type</dt>
-            <dd className="text-text-primary">{finding.component_type.replace("_", " ")}</dd>
-            <dt className="text-text-secondary">Condition</dt>
-            <dd className="text-text-primary capitalize">{finding.condition}</dd>
+        <Section title="What we saw">
+          <p className="text-[13px] text-ink-primary leading-relaxed">
+            {title}
             {finding.specific_defects.length > 0 && (
               <>
-                <dt className="text-text-secondary">Specific defects</dt>
-                <dd className="text-text-primary">{finding.specific_defects.join("; ")}</dd>
+                {" — "}
+                {finding.specific_defects.join(", ")}.
               </>
             )}
-            {finding.vegetation_distance_estimate_ft !== null && (
-              <>
-                <dt className="text-text-secondary">Vegetation distance</dt>
-                <dd className="text-text-primary">{finding.vegetation_distance_estimate_ft} ft (visual estimate)</dd>
-              </>
-            )}
-            <dt className="text-text-secondary">Voltage class</dt>
-            <dd className="text-text-primary">{voltageClass}</dd>
-          </dl>
-        </section>
+            {" "}
+            Pegasus reports {finding.condition} condition at {voltageClass} ({finding.component_type.replace("_", " ")}).
+          </p>
+        </Section>
 
-        <section>
-          <div className="text-[10px] uppercase font-semibold tracking-wider text-text-tertiary mb-2">
-            Confidence breakdown
+        <Section title="Severity reasoning">
+          <div className="border border-border rounded-md p-3 bg-surface-panel">
+            <p className="text-[13px] text-ink-primary leading-relaxed">
+              <span className="font-semibold" style={{ color: sevColor }}>
+                {reasoning.word}
+              </span>
+              <span className="text-ink-secondary"> — </span>
+              {reasoning.bodyByClass(finding.class)}
+            </p>
+            {finding.nerc_citation && (
+              <div className="mt-2.5">
+                <span className="font-mono text-[10px] text-ink-secondary bg-surface-subtle border border-border rounded px-1.5 py-0.5 inline-flex items-center gap-1">
+                  <FileText size={10} /> {finding.nerc_citation}
+                </span>
+              </div>
+            )}
           </div>
-          <div className="space-y-2 text-xs font-mono">
-            <ConfidenceBar label="Marengo similarity" value={finding.marengo_score} text={finding.marengo_score.toFixed(2)} />
-            <div className="flex items-center justify-between">
-              <span className="text-text-secondary">Pegasus confidence</span>
-              <span className="text-text-primary">{finding.pegasus_confidence}</span>
-            </div>
-            <div className="flex items-center justify-between border-t border-border-default pt-2">
-              <span className="text-text-secondary">Combined</span>
-              <span className="text-text-primary font-semibold">{finding.combined_confidence}</span>
-            </div>
+        </Section>
+
+        <Section title="Component details">
+          <dl className="grid grid-cols-[140px_1fr] gap-y-2 gap-x-3 text-[12px]">
+            {componentRows.map(([k, v]) => (
+              <div key={k} className="contents">
+                <dt className="text-ink-tertiary uppercase tracking-[0.06em] text-[10px] pt-0.5">{k}</dt>
+                <dd className="text-ink-primary">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </Section>
+
+        <Section title="Confidence breakdown">
+          <div className="space-y-2.5">
+            <ConfRow
+              label="Marengo similarity"
+              value={Math.min(1, finding.marengo_score / 0.25)}
+              display={finding.marengo_score.toFixed(2)}
+              color={sevColor}
+            />
+            <ConfRow
+              label="Pegasus confidence"
+              value={confidencePercent(finding.pegasus_confidence)}
+              display={finding.pegasus_confidence}
+              color={sevColor}
+            />
+            <ConfRow
+              label="Combined"
+              value={confidencePercent(finding.combined_confidence)}
+              display={finding.combined_confidence}
+              color={sevColor}
+            />
           </div>
-        </section>
+        </Section>
+
+        <div className="h-2" />
+      </div>
+
+      <div className="border-t border-border bg-surface-panel p-3 flex flex-col gap-2 no-print">
+        <button
+          type="button"
+          onClick={() => window.print()}
+          className="h-9 inline-flex items-center justify-center gap-2 rounded-md bg-ink-primary text-white text-[12px] font-medium hover:bg-black transition-colors"
+        >
+          <ExternalLink size={13} />
+          Generate work order
+        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            className="flex-1 h-9 inline-flex items-center justify-center gap-1.5 rounded-md border border-border bg-surface-panel text-[12px] font-medium text-ink-primary hover:bg-surface-subtle"
+          >
+            <Check size={13} /> Mark reviewed
+          </button>
+          <button
+            type="button"
+            className="flex-1 h-9 inline-flex items-center justify-center gap-1.5 rounded-md border border-border bg-surface-panel text-[12px] font-medium text-ink-primary hover:bg-surface-subtle"
+          >
+            <Flag size={13} /> Flag for re-inspection
+          </button>
+        </div>
       </div>
     </aside>
-  );
-}
-
-function ConfidenceBar({ label, value, text }: { label: string; value: number; text: string }) {
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-text-secondary">{label}</span>
-        <span className="text-text-primary">{text}</span>
-      </div>
-      <div className="h-1.5 bg-subtle rounded overflow-hidden">
-        <div
-          className="h-full bg-brand"
-          style={{ width: `${Math.min(100, Math.max(0, value * 100))}%` }}
-        />
-      </div>
-    </div>
   );
 }

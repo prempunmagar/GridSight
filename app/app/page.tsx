@@ -11,12 +11,24 @@ import { loadFindings, loadFlightPath, loadMetadata } from "@/lib/data";
 import Header from "@/components/Header";
 import FindingsList from "@/components/FindingsList";
 import DetailPanel from "@/components/DetailPanel";
-import ConfidenceLegend from "@/components/ConfidenceLegend";
+import Timeline from "@/components/Timeline";
+import type { FilterValue } from "@/components/FilterChips";
+import type { SortKey } from "@/components/SortDropdown";
 
 const FlightPathMap = dynamic(() => import("@/components/FlightPathMap"), {
   ssr: false,
-  loading: () => <div className="flex-1 bg-subtle flex items-center justify-center text-text-tertiary text-sm">loading map…</div>,
+  loading: () => (
+    <div className="flex-1 bg-surface-subtle border border-border rounded-lg flex items-center justify-center text-ink-tertiary text-sm">
+      loading map…
+    </div>
+  ),
 });
+
+const FINDINGS_WIDTH = 380;
+const DETAIL_WIDTH = 420;
+const COLUMN_GAP = 24;
+const OUTER_PADDING_X = 24;
+const OUTER_PADDING_TOP = 24;
 
 export default function Page() {
   const [findings, setFindings] = useState<Finding[] | null>(null);
@@ -25,12 +37,18 @@ export default function Page() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  const [filters, setFilters] = useState<Set<FilterValue>>(new Set<FilterValue>(["all"]));
+  const [sort, setSort] = useState<SortKey>("severity");
+  const [showIntact, setShowIntact] = useState(false);
+
   useEffect(() => {
     Promise.all([loadFindings(), loadFlightPath(), loadMetadata()])
       .then(([f, p, m]) => {
         setFindings(f);
         setFlightPath(p);
         setMeta(m);
+        const firstActionable = f.find((x) => x.severity !== "no_action");
+        if (firstActionable) setSelectedId(firstActionable.finding_id);
       })
       .catch((e) => setLoadError(String(e)));
   }, []);
@@ -42,7 +60,7 @@ export default function Page() {
 
   if (loadError) {
     return (
-      <div className="h-screen flex items-center justify-center text-sm text-critical">
+      <div className="h-screen flex items-center justify-center text-sm text-sev-critical">
         Failed to load pipeline output: {loadError}
       </div>
     );
@@ -50,38 +68,70 @@ export default function Page() {
 
   if (!findings || !flightPath || !meta) {
     return (
-      <div className="h-screen flex items-center justify-center text-sm text-text-tertiary">
+      <div className="h-screen flex items-center justify-center text-sm text-ink-tertiary">
         loading…
       </div>
     );
   }
 
+  const reservedHeight = 64 /* header */ + 56 /* timeline */ + 24 /* timeline gap */ + OUTER_PADDING_TOP + 24;
+
   return (
-    <div className="h-screen flex flex-col">
+    <div className="min-h-screen bg-surface-canvas text-ink-primary">
       <Header meta={meta} />
-      <div className="flex flex-1 min-h-0">
-        <FindingsList
-          findings={findings}
-          selectedId={selectedId}
-          voltageClass={meta.voltage_class}
-          onSelect={setSelectedId}
-        />
-        <main className="flex-1 relative min-w-0">
+
+      <div
+        style={{
+          paddingLeft: OUTER_PADDING_X,
+          paddingRight: OUTER_PADDING_X,
+          paddingTop: OUTER_PADDING_TOP,
+          paddingBottom: 24,
+        }}
+      >
+        <div
+          className="flex"
+          style={{ gap: `${COLUMN_GAP}px`, height: `calc(100vh - ${reservedHeight}px)` }}
+        >
+          <FindingsList
+            findings={findings}
+            selectedId={selectedId}
+            voltageClass={meta.voltage_class}
+            onSelect={setSelectedId}
+            filters={filters}
+            setFilters={setFilters}
+            sort={sort}
+            setSort={setSort}
+            showIntact={showIntact}
+            setShowIntact={setShowIntact}
+            width={FINDINGS_WIDTH}
+          />
+
           <FlightPathMap
             findings={findings}
             flightPath={flightPath}
             selectedId={selectedId}
             onSelect={setSelectedId}
+            showIntact={showIntact}
           />
-          <ConfidenceLegend />
-        </main>
-        {selected && (
-          <DetailPanel
-            finding={selected}
-            voltageClass={meta.voltage_class}
-            onClose={() => setSelectedId(null)}
-          />
-        )}
+
+          {selected && (
+            <DetailPanel
+              finding={selected}
+              voltageClass={meta.voltage_class}
+              width={DETAIL_WIDTH}
+              onClose={() => setSelectedId(null)}
+            />
+          )}
+        </div>
+      </div>
+
+      <div style={{ paddingLeft: OUTER_PADDING_X, paddingRight: OUTER_PADDING_X, paddingBottom: 24 }}>
+        <Timeline
+          findings={findings}
+          totalSeconds={meta.source_video_duration_seconds}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
       </div>
     </div>
   );
