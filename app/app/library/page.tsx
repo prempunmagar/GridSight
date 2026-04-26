@@ -17,6 +17,7 @@ import {
 
 import type { RunMetadata } from "@/types/metadata";
 import { SEVERITY_HEX } from "@/lib/severity";
+import DocsMenu from "@/components/DocsMenu";
 import StatusBanner, { useRunStatus } from "@/components/StatusBanner";
 import VideoThumb from "@/components/VideoThumb";
 
@@ -105,6 +106,7 @@ export default function LibraryPage() {
           Inspection Library
         </div>
         <div className="flex-1 flex items-center justify-end gap-3">
+          <DocsMenu />
           <button
             type="button"
             aria-label="Settings"
