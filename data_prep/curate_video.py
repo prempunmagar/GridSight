@@ -32,7 +32,6 @@ Usage
 import argparse
 import json
 import math
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -48,8 +47,8 @@ PEXELS_COOKIES_FILE = "pexels_cookies.txt"
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
 SCRIPT_DIR    = Path(__file__).resolve().parent
-RAW_DIR       = "C:\\Users\\TheJournal65\\Documents\\Claude\\Projects\\Hackathon\\GridSight\\data\\raw"
-PROCESSED_DIR = "C:\\Users\\TheJournal65\\Documents\\Claude\\Projects\\Hackathon\\GridSight\\data\\raw\\processed"
+RAW_DIR       = SCRIPT_DIR.parent / "data" / "raw"
+PROCESSED_DIR = SCRIPT_DIR.parent / "data" / "raw" / "processed"
 OUTPUT_FILE   = SCRIPT_DIR.parent / "data" / "curated" / "demo_video.mp4"
 
 DOWNLOAD_CAP_MINUTES = 60.0   # ~2x target gives slack for trimming
