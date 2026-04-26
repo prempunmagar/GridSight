@@ -24,8 +24,6 @@ const FlightPathMap = dynamic(() => import("@/components/FlightPathMap"), {
   ),
 });
 
-const FINDINGS_WIDTH = 380;
-const DETAIL_WIDTH = 420;
 const COLUMN_GAP = 24;
 const OUTER_PADDING_X = 24;
 const OUTER_PADDING_TOP = 24;
@@ -103,7 +101,6 @@ export default function Page() {
             setSort={setSort}
             showIntact={showIntact}
             setShowIntact={setShowIntact}
-            width={FINDINGS_WIDTH}
           />
 
           <FlightPathMap
@@ -118,7 +115,6 @@ export default function Page() {
             <DetailPanel
               finding={selected}
               voltageClass={meta.voltage_class}
-              width={DETAIL_WIDTH}
               onClose={() => setSelectedId(null)}
             />
           )}

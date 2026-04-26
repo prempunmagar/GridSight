@@ -19,7 +19,6 @@ interface Props {
   setSort: (next: SortKey) => void;
   showIntact: boolean;
   setShowIntact: (next: boolean) => void;
-  width: number;
 }
 
 export default function FindingsList({
@@ -33,7 +32,6 @@ export default function FindingsList({
   setSort,
   showIntact,
   setShowIntact,
-  width,
 }: Props) {
   const actionable = useMemo(() => findings.filter((f) => f.severity !== "no_action"), [findings]);
   const intact = useMemo(() => findings.filter((f) => f.severity === "no_action"), [findings]);
@@ -79,8 +77,7 @@ export default function FindingsList({
 
   return (
     <aside
-      style={{ width }}
-      className="shrink-0 bg-surface-panel border border-border rounded-lg flex flex-col overflow-hidden h-full"
+      className="flex-1 basis-0 min-w-[320px] bg-surface-panel border border-border rounded-lg flex flex-col overflow-hidden h-full"
     >
       <div className="px-4 pt-4 pb-3 border-b border-border bg-surface-panel">
         <div className="flex items-center justify-between mb-2">

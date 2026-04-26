@@ -13,7 +13,6 @@ import ConfRow from "./ConfRow";
 interface Props {
   finding: Finding | null;
   voltageClass: string;
-  width: number;
   onClose: () => void;
 }
 
@@ -46,7 +45,7 @@ const REASONING: Record<string, { word: string; bodyByClass: (klass: string) => 
   },
 };
 
-export default function DetailPanel({ finding, voltageClass, width, onClose }: Props) {
+export default function DetailPanel({ finding, voltageClass, onClose }: Props) {
   if (!finding) return null;
 
   const sevColor = SEVERITY_HEX[finding.severity];
@@ -74,8 +73,7 @@ export default function DetailPanel({ finding, voltageClass, width, onClose }: P
   return (
     <aside
       key={finding.finding_id}
-      style={{ width }}
-      className="panel-enter shrink-0 bg-surface-panel border border-border rounded-lg flex flex-col overflow-hidden shadow-panel h-full"
+      className="panel-enter flex-1 basis-0 min-w-[340px] bg-surface-panel border border-border rounded-lg flex flex-col overflow-hidden shadow-panel h-full"
     >
       <div className="h-14 px-4 flex items-center gap-2 border-b border-border bg-surface-panel">
         <span

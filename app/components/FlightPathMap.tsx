@@ -124,7 +124,7 @@ export default function FlightPathMap({ findings, flightPath, selectedId, onSele
   );
 
   return (
-    <section className="flex-1 min-w-0 bg-surface-panel border border-border rounded-lg relative overflow-hidden h-full">
+    <section className="flex-1 basis-0 min-w-[320px] bg-surface-panel border border-border rounded-lg relative overflow-hidden h-full">
       <MapContainer center={center} zoom={13} className="h-full w-full" scrollWheelZoom>
         <TileLayer
           attribution='&copy; CARTO &copy; OSM'
