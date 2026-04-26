@@ -219,7 +219,7 @@ The rubric calls out false positive analysis as a deliverable. This section walk
 | Background vegetation | Vegetation outside the right-of-way interpreted as encroachment due to camera angle / foreshortening |
 | Visually similar healthy component | Clean-but-old porcelain or weathered hardware interpreted as defective |
 | Borderline severity case | Real condition exists but severity is ambiguous; the model surfaced what is debatable rather than clearly anomalous |
-| IoU near-miss (real anomaly, threshold-failed) | Prediction is correct but its 12-second window does not overlap the ground truth's narrow window by 50%, so the pair fails the IoU rule |
+| IoU near-miss (real anomaly, threshold-failed) | Prediction is correct but its 15-second window does not overlap the ground truth's narrow window by 50%, so the pair fails the IoU rule |
 
 ### 5.2 Per-FP attribution
 

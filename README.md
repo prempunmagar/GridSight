@@ -6,147 +6,161 @@
 
 ---
 
-## Executive Summary
+## What GridSight is
 
-GridSight is an automated pipeline that processes standard drone inspection inputs (video footage and telemetry data) to detect and locate critical vulnerabilities on high-voltage transmission lines. 
+An automated pipeline that processes the two standard outputs of any drone inspection — **a video file and its companion telemetry stream** — and produces a prioritized, georeferenced findings list. Two anomaly classes: **insulator damage** and **vegetation encroachment**, both anchored to NERC FAC-003-4 clearance distances and standard industry failure-mode taxonomy.
 
-Built on TwelveLabs Marengo 3.0 and Pegasus 1.2 via AWS Bedrock, GridSight targets two specific, regulation-grounded anomaly classes: **damaged insulators** and **vegetation encroachment** (anchored to NERC FAC-003 standards). It produces a Next.js dashboard featuring a map view, telemetry inspector, click-to-play evidence clips, and enterprise-ready CSV/GeoJSON exports.
+Built on **TwelveLabs Marengo 3.0** (semantic video search) and **Pegasus 1.2** (structured per-clip description) via **AWS Bedrock**. The output is an operations console — map view of the inspection corridor, severity-coded finding pins, click-to-play 15-second evidence clips, telemetry inspector, and CSV / GeoJSON exports ready for utility work-order systems.
 
-**This is an operations console, not a video gallery.** It turns hours of tedious frame-by-frame human review into an actionable, georeferenced list of verifiable findings.
-
----
-
-## Architecture at a Glance
-
-GridSight operates via a decoupled batch-processing architecture. The Python pipeline runs once, processes the video/telemetry, and writes static JSON and MP4 evidence clips to disk. The Next.js dashboard reads these static files at startup. 
-
-This deliberate separation means **anyone can clone this repo and run the dashboard immediately without AWS credentials**. 
-
-* **Stage 1: Ingest** — Loads 1080p drone footage and per-second CSV telemetry (parsed directly from a DJI SRT file).
-* **Stage 2: Index** — Makes the video semantically searchable via TwelveLabs Marengo.
-* **Stage 3: Detect** — Uses natural-language queries to flag candidate moments of damage or encroachment.
-* **Stage 4: Extract** — Slices 12-second evidence clips around candidate timestamps via `ffmpeg`.
-* **Stage 5: Describe** — Uses TwelveLabs Pegasus to generate structured JSON condition assessments for each clip.
-* **Stage 6: Score & Locate** — Applies an automated NERC-grounded severity rules engine and attaches exact GPS coordinates/heading/altitude from the telemetry sync.
-* **Stage 7: Export** — Emits CSV, GeoJSON, and the static dashboard assets.
+> **This is an operations console, not a video gallery.** It turns hours of frame-by-frame human review into a triaged, verifiable list.
 
 ---
 
-## Deliberate Scope & Anti-Goals
+## Headline results — canonical run
 
-To deliver a reliable, judge-ready system in 24 hours, we made explicit trade-offs. We are not shy about what we scoped out:
+`run_20260426_113904` against `data/curated/demo_video.mp4` (13:32, 1080p, 345 kV corridor):
 
-1. **Asset-Centric, Not Anomaly-Only:** Pegasus acts as a describer, not a filter. If Marengo flags an asset but Pegasus determines it is `intact`, we keep the record as a `no_action` finding. This honestly exposes our false-positive surface and provides a substrate for full-inventory asset monitoring.
-2. **No API Layer:** There is no live Python backend or database running behind the dashboard. It is a pure static-file contract. This eliminates runtime crashes on demo day.
-3. **Focused Anomaly Classes:** We strictly limited detection to Insulator Damage and Vegetation Encroachment on Lattice Steel Suspension Towers. We intentionally ignored tower corrosion, conductor strand damage, and wood poles to ensure our severity grading remained robust.
-4. **No Sub-Meter GPS Illusions:** We target ±50m accuracy relative to the drone's position, which is entirely sufficient for work-order routing.
+| | |
+|---|---|
+| Findings produced | **14** (2 critical, 1 high, 6 moderate, 5 intact / no-action) |
+| End-to-end runtime (cold cache) | ~6 minutes for 13:32 of footage (~28 sec/min source) |
+| Ground-truth anomalies labeled | 15 (8 insulator, 7 vegetation) |
+| Per-class F1 at IoU ≥ 0.5 | 0.18 (Class A), 0.15 (Class B) |
+| Per-class F1 at IoU ≥ 0.3 | 0.36 (Class A), 0.15 (Class B) |
+| Severity calibration on matched pairs | 50% exact, 100% within one tier |
+| Bedrock cost | ~$0.30 / minute of source video |
+
+Honest framing: F1 is below pre-run targets at the strict IoU 0.5 threshold. The dominant failure mode is the IoU rule colliding with narrow ground-truth windows (≤4-second labels can't reach 0.5 IoU against a 15-second prediction), not visual misclassification — a methodological caveat the [validation report](docs/06_VALIDATION_REPORT.md) walks through in detail. Class confusion is zero.
 
 ---
 
-## Judging Guide: Where to look
+## Quickstart — view the dashboard (no AWS needed)
+
+The repo ships with the canonical run's output committed under `app/public/data/` and `app/public/clips/`. The dashboard reads these static files at startup.
+
+```bash
+git clone https://github.com/prempunmagar/GridSight
+cd GridSight/app
+npm install
+npm run dev
+# http://localhost:3000  →  redirects to /library  →  click the video tile  →  /dashboard
+```
+
+Three commands, no AWS credentials, no Python required.
+
+## Re-run the pipeline (AWS Bedrock required)
+
+```bash
+python -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env
+# Fill in AWS creds + S3_BUCKET in .env
+
+# Verify Bedrock access (Marengo + Pegasus smoke test)
+python examples/bedrock_smoke_test.py
+
+# Re-run the canonical pipeline against committed inputs
+python -m pipeline.run_all
+
+# Or trigger from the dashboard's library screen (POST /api/reanalyze)
+```
+
+The pipeline writes `out/findings.{json,csv,geojson}`, `out/validation_metrics.json`, and the dashboard data files in `app/public/data/`. Full dev workflows in [`docs/03_REPO_STRUCTURE.md`](docs/03_REPO_STRUCTURE.md) §6.
+
+---
+
+## Architecture
+
+A seven-stage Python pipeline writes static files to disk; a Next.js dashboard reads those files. **No API layer, no live AWS at view time.** This is Decision D11.
+
+```
+data/curated/demo_video.mp4 + data/telemetry/*.csv
+          │
+          ▼
+1. Ingest      pipeline/ingest.py
+2. Index       pipeline/marengo_index.py     (Marengo 3.0, async invoke)
+3. Detect      pipeline/marengo_detect.py    (text-query similarity, 10s dedup)
+4. Extract     pipeline/extract_clips.py     (ffmpeg, 15-second windows, atomic write)
+5. Describe    pipeline/pegasus_describe.py  (Pegasus 1.2, sync invoke)
+6. Score       pipeline/severity.py          (NERC rules + telemetry lookup)
+7. Export      pipeline/export_*.py          (CSV, GeoJSON, dashboard JSON, clips)
+          │
+          ▼
+app/public/data/{findings,flight_path,run_metadata}.json
+app/public/clips/{finding_id}.mp4
+          │
+          ▼
+Next.js dashboard (/library → /dashboard)
+- 3-zone layout: findings list / map / detail panel
+- timeline strip showing severity heatmap of the run
+- POST /api/reanalyze re-runs the pipeline (D19)
+```
+
+Detailed stage contracts in [`docs/01_MASTER.md`](docs/01_MASTER.md) §6 and [`docs/TECH.md`](docs/TECH.md) §1.
+
+---
+
+## Deliberate scope
+
+We made explicit trade-offs to ship a reliable, judge-ready system in 24 hours:
+
+1. **Two anomaly classes only.** Insulator damage and vegetation encroachment. Tower corrosion, conductor damage, and other failure modes are explicitly out of scope.
+2. **Lattice steel suspension towers** as the asset target. No tubular poles, no wood poles, no dead-end towers.
+3. **Asset-centric data model.** Pegasus describes condition; the dashboard filters. `intact` findings flow through to the output as `no_action` records — exposes the false-positive surface honestly and provides substrate for full-inventory monitoring (Decision D9, D10).
+4. **No API layer for data flow.** Pipeline writes static files; dashboard reads static files. The single exception is `POST /api/reanalyze` for control only (Decision D19).
+5. **No sub-meter GPS claims.** ±50 m relative to the simulated corridor is sufficient for work-order routing.
+6. **Real-format simulated telemetry.** YouTube footage strips drone telemetry, so the demo's per-second CSV is generated along a real southern Illinois 345 kV corridor — the format is real (DJI-SRT-compatible), values are simulated, and disclosed as such (Decision D6).
+
+Anti-goals are listed in [`docs/01_MASTER.md`](docs/01_MASTER.md) §4.2 and [`docs/02_BUILD_PLAN.md`](docs/02_BUILD_PLAN.md).
+
+---
+
+## Judging guide — where to look
 
 | Document | What it covers |
 |---|---|
-| **`docs/TECH.md`** | **Start Here.** A 2-page summary of our TwelveLabs integration strategy, prompt engineering, and performance limitations. |
-| **`docs/06_VALIDATION_REPORT.md`** | Precision, recall, F1 metrics, confusion matrix, and an honest analysis of our false positives. |
-| `docs/01_MASTER.md` | The complete source of truth on system architecture and project decisions. |
-| `docs/05_DOMAIN_KNOWLEDGE.md` | Our NERC FAC-003 regulatory grounding and severity rule definitions. |
+| **[`docs/TECH.md`](docs/TECH.md)** | **Start here.** Two-page summary: TwelveLabs integration strategy, anomaly approach, asset modeling, performance benchmarks. |
+| **[`docs/06_VALIDATION_REPORT.md`](docs/06_VALIDATION_REPORT.md)** | Full validation methodology, precision / recall / F1 per class, confusion matrix, FP and FN attribution tables, severity calibration, IoU sensitivity analysis. |
+| **[`docs/07_OPERATIONAL_IMPACT.md`](docs/07_OPERATIONAL_IMPACT.md)** | One-page operational value brief: throughput multiplier, deployment cost, payback, regional-utility ROI model. |
+| [`docs/01_MASTER.md`](docs/01_MASTER.md) | Project source-of-truth: scope, architecture, success criteria, decisions log (D1–D19). |
+| [`docs/05_DOMAIN_KNOWLEDGE.md`](docs/05_DOMAIN_KNOWLEDGE.md) | NERC FAC-003-4 numbers, insulator failure modes, the literal severity rules. |
+| [`docs/09_UI_PROPOSAL.md`](docs/09_UI_PROPOSAL.md) | Dashboard design: layout, components, interaction model, design tokens. |
 
----
-
-## Quickstart: Run the Dashboard (No AWS needed)
-
-To see the finished product with the canonical pipeline output:
-
-```bash
-cd app
-npm install
-npm run dev
-# Open http://localhost:3000
-```
-
-The dashboard reads pre-computed pipeline output from `app/public/data/`. No AWS credentials, no API calls.
-
-## Run the full pipeline (AWS Bedrock required)
-
-If you're iterating on detection or running on new footage:
-
-```bash
-# Setup
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-# Edit .env with AWS credentials
-
-# Verify Bedrock works
-python examples/bedrock_smoke_test.py
-
-# At this point, the demo's input data should already be in the repo:
-#   data/curated/demo_video.mp4    (out-of-band, gitignored — get from data prep team)
-#   data/telemetry/*.csv           (committed)
-#   data/validation/ground_truth.csv (committed)
-# See docs/08_EXTERNAL_DATA_HANDOFF.md for what the data prep team produces.
-
-# Run the full pipeline
-python pipeline/run_all.py
-
-# OR run this from the repo root
-python -m pipeline.run_all
-
-# View results
-cd app && npm run dev
-```
-
-Detailed dev workflows in [`docs/03_REPO_STRUCTURE.md`](docs/03_REPO_STRUCTURE.md) Section 6.
-
----
-
-## Where to start, by role
-
-If you're working on...
-
-| Task | Read these, in order |
-|---|---|
-| **Anything** (start here) | [`docs/01_MASTER.md`](docs/01_MASTER.md) Sections 1–5, then [`docs/02_BUILD_PLAN.md`](docs/02_BUILD_PLAN.md) Phase you're working on |
-| **AWS Bedrock setup** | [`docs/02_BUILD_PLAN.md`](docs/02_BUILD_PLAN.md) Phase 1 Task 1 |
-| **Data prep workstream** (footage, telemetry, labeling) | [`docs/08_EXTERNAL_DATA_HANDOFF.md`](docs/08_EXTERNAL_DATA_HANDOFF.md) — entire doc; then [`docs/04_DATA_BRIEF.md`](docs/04_DATA_BRIEF.md) for substantive guidance |
-| **Footage hunting** (subset of data prep) | [`docs/08_EXTERNAL_DATA_HANDOFF.md`](docs/08_EXTERNAL_DATA_HANDOFF.md) Deliverable 1, then [`docs/04_DATA_BRIEF.md`](docs/04_DATA_BRIEF.md) Sections 2, 3, 4 |
-| **Validation labeling** (subset of data prep) | [`docs/08_EXTERNAL_DATA_HANDOFF.md`](docs/08_EXTERNAL_DATA_HANDOFF.md) Deliverable 3 (with worked examples), then [`docs/05_DOMAIN_KNOWLEDGE.md`](docs/05_DOMAIN_KNOWLEDGE.md) Sections 3, 4 |
-| **Telemetry generation** (subset of data prep) | [`docs/08_EXTERNAL_DATA_HANDOFF.md`](docs/08_EXTERNAL_DATA_HANDOFF.md) Deliverable 2, then [`docs/04_DATA_BRIEF.md`](docs/04_DATA_BRIEF.md) Section 5 |
-| **Domain rubric / NERC numbers** | [`docs/05_DOMAIN_KNOWLEDGE.md`](docs/05_DOMAIN_KNOWLEDGE.md) — entire doc |
-| **Pipeline modules** | [`docs/03_REPO_STRUCTURE.md`](docs/03_REPO_STRUCTURE.md) Sections 1, 2, 8 |
-| **Next.js dashboard** | [`docs/03_REPO_STRUCTURE.md`](docs/03_REPO_STRUCTURE.md) Sections 2, 3 (TypeScript schemas) |
-| **Severity scoring** | [`docs/05_DOMAIN_KNOWLEDGE.md`](docs/05_DOMAIN_KNOWLEDGE.md) Section 5 (the literal spec) |
-
----
-
-## Documents
-
-All planning and reference documents are in [`docs/`](docs/):
+The full set:
 
 | File | Purpose |
 |---|---|
-| [`01_MASTER.md`](docs/01_MASTER.md) | Source of truth for what GridSight is, scope, architecture, decisions log |
-| [`02_BUILD_PLAN.md`](docs/02_BUILD_PLAN.md) | Six-phase execution playbook with exit criteria and decision gates |
-| [`03_REPO_STRUCTURE.md`](docs/03_REPO_STRUCTURE.md) | Directory layout, pipeline-dashboard contract, gitignore, dev workflows |
-| [`04_DATA_BRIEF.md`](docs/04_DATA_BRIEF.md) | What the data prep workstream produces and why: search strategy, quality criteria, curation workflow, corridor selection logic |
-| [`05_DOMAIN_KNOWLEDGE.md`](docs/05_DOMAIN_KNOWLEDGE.md) | NERC FAC-003-4 MVCD numbers, insulator failure modes, severity rules |
-| [`08_EXTERNAL_DATA_HANDOFF.md`](docs/08_EXTERNAL_DATA_HANDOFF.md) | Operational contract for the data prep team: deliverables, schemas, worked examples |
+| [`01_MASTER.md`](docs/01_MASTER.md) | Source of truth; scope, architecture, decisions log |
+| [`02_BUILD_PLAN.md`](docs/02_BUILD_PLAN.md) | Six-phase execution playbook |
+| [`03_REPO_STRUCTURE.md`](docs/03_REPO_STRUCTURE.md) | Directory layout, pipeline ↔ dashboard contract, dev workflows |
+| [`04_DATA_BRIEF.md`](docs/04_DATA_BRIEF.md) | Data prep workstream brief |
+| [`05_DOMAIN_KNOWLEDGE.md`](docs/05_DOMAIN_KNOWLEDGE.md) | NERC FAC-003-4, failure modes, severity rules |
+| [`06_VALIDATION_REPORT.md`](docs/06_VALIDATION_REPORT.md) | Validation results — required submission artifact |
+| [`07_OPERATIONAL_IMPACT.md`](docs/07_OPERATIONAL_IMPACT.md) | Operational impact brief — required submission artifact |
+| [`08_EXTERNAL_DATA_HANDOFF.md`](docs/08_EXTERNAL_DATA_HANDOFF.md) | Data prep team coordination doc |
+| [`09_UI_PROPOSAL.md`](docs/09_UI_PROPOSAL.md) | Dashboard design specification |
+| [`TECH.md`](docs/TECH.md) | Condensed technical reference for judges |
 
-The following docs get written **during** the build:
+Per-subdirectory READMEs:
+- [`pipeline/README.md`](pipeline/README.md) — validation module specifics
+- [`data_prep/README.md`](data_prep/README.md) — demo input preparation workstream
 
-- `06_VALIDATION_REPORT.md` — Phase 5 output (precision/recall/F1, confusion matrix, FP analysis)
-- `07_OPERATIONAL_IMPACT.md` — Phase 5 output (one-page ROI brief)
-- `TECH.md` — Phase 6 condensed tech doc for judges
+---
+
+## Production compatibility
+
+GridSight ingests the standard outputs of a real drone inspection. [`scripts/srt_to_csv.py`](scripts/srt_to_csv.py) is a working DJI SRT parser — a judge from the drone industry could hand the team a real DJI export and the pipeline would process it without code changes (Decision D12). The system is voltage-class agnostic; switching from the demo's 345 kV (MVCD = 4.3 ft) to 230 kV / 500 kV / 765 kV is a single configuration change.
+
+For the hackathon demo, telemetry is generated along a real US transmission corridor in southern Illinois because YouTube footage strips the original GPS metadata. The format is real; the values are simulated; this is disclosed in the demo, the dashboard, and [`docs/01_MASTER.md`](docs/01_MASTER.md) §8.1.
 
 ---
 
 ## Status
 
-**Phase 1 — Foundations.** See [`docs/02_BUILD_PLAN.md`](docs/02_BUILD_PLAN.md) for current phase exit criteria.
+**Phase 6 — Submission.** All required deliverables per [`docs/01_MASTER.md`](docs/01_MASTER.md) §11 are in place: working pipeline, dashboard, CSV / GeoJSON exports, validation report, operational impact brief, technical documentation, GitHub repo. Demo video and DevPost submission are the remaining time-bounded items.
 
-When the phase changes, update the line above and append progress notes to [`docs/01_MASTER.md`](docs/01_MASTER.md) Section 13 (Decisions Log) if anything was decided that affects the rest of the build.
+The decisions log in [`docs/01_MASTER.md`](docs/01_MASTER.md) §13 records nineteen recorded design decisions (D1–D19). The cleanest read of "what GridSight chose to be" is reading those nineteen rows.
 
 ---
 
@@ -154,19 +168,15 @@ When the phase changes, update the line above and append progress notes to [`doc
 
 | Symptom | First check |
 |---|---|
-| Bedrock auth fails | [`docs/02_BUILD_PLAN.md`](docs/02_BUILD_PLAN.md) Phase 1 Task 1 — escalate immediately, don't work around |
-| Pegasus returns malformed JSON | [`docs/02_BUILD_PLAN.md`](docs/02_BUILD_PLAN.md) Phase 3 Task 4 — fallback parser, prompt iteration |
-| Marengo recall is poor | [`docs/02_BUILD_PLAN.md`](docs/02_BUILD_PLAN.md) Decision Gate 2 |
-| "Where does this file go?" | [`docs/03_REPO_STRUCTURE.md`](docs/03_REPO_STRUCTURE.md) Section 8 |
-| "Is this a Class A finding?" | [`docs/05_DOMAIN_KNOWLEDGE.md`](docs/05_DOMAIN_KNOWLEDGE.md) Section 3 |
-| "What's the MVCD threshold?" | [`docs/05_DOMAIN_KNOWLEDGE.md`](docs/05_DOMAIN_KNOWLEDGE.md) Section 4.3 — Table 2 |
-| Scope creep argument | [`docs/01_MASTER.md`](docs/01_MASTER.md) Section 4.2 (anti-goals) and Section 13 (decisions log) |
+| Bedrock auth fails | [`docs/02_BUILD_PLAN.md`](docs/02_BUILD_PLAN.md) Phase 1 Task 1 |
+| Pegasus returns malformed JSON | [`pipeline/pegasus_describe.py`](pipeline/pegasus_describe.py) `_extract_json` (regex fallback) |
+| Pipeline run errors mid-stage | `out/run_log.txt` + `app/public/data/run_status.json` |
+| Dashboard renders blank | Check that `app/public/data/findings.json` exists; the `/library` screen shows a clear "loading…" state |
+| "Where does this file go?" | [`docs/03_REPO_STRUCTURE.md`](docs/03_REPO_STRUCTURE.md) §8 |
+| Severity rule confusion | [`docs/05_DOMAIN_KNOWLEDGE.md`](docs/05_DOMAIN_KNOWLEDGE.md) §5 (the literal spec) |
 
 ---
 
-## House rules
+## License & attribution
 
-- **Decisions logged in [`docs/01_MASTER.md`](docs/01_MASTER.md) Section 13 don't get relitigated.** New information can produce new decisions; opinions don't.
-- **Phase exit criteria are not optional.** Don't start Phase N+1 before Phase N's exit criteria are checked off.
-- **Decision Gate 3 is a hard rule.** If the core pipeline isn't working Sunday morning, Workflow 03 stretch is abandoned. Not a debate.
-- **Anti-goals in [`docs/02_BUILD_PLAN.md`](docs/02_BUILD_PLAN.md) ("things we do NOT do") are real.** If a teammate proposes one, the answer is no unless the planning docs are reopened.
+Built for the Geospatial Video Intelligence Hackathon (St. Louis, April 25–26, 2026). Demo footage curated from publicly available drone inspection videos on YouTube; per-segment provenance lives in `data/curated/source_log.md` (gitignored alongside the curated cut). NERC FAC-003-4 numbers are reproduced verbatim from the public NERC reliability standard. Severity rule rationale is grounded in the EPRI Insulator Reference Book and the IEEE inspection literature; full citations in [`docs/05_DOMAIN_KNOWLEDGE.md`](docs/05_DOMAIN_KNOWLEDGE.md) §6.

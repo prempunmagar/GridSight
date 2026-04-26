@@ -90,7 +90,7 @@ The ROW is the spatial context for vegetation encroachment scoring. Vegetation o
 
 ## 2. Voltage Class Assumption
 
-GridSight defaults to **230 kV** for severity scoring. The default applies unless the curated footage clearly shows higher-voltage infrastructure.
+GridSight defaults to **345 kV** for severity scoring (resolved 2026-04-26 per `01_MASTER.md` §14; the canonical demo corridor in southern Illinois is consistent with 345 kV EHV). Earlier drafts of this document defaulted to 230 kV before the corridor and footage were confirmed.
 
 ### Visual cues for voltage class identification
 
@@ -261,23 +261,23 @@ Higher-altitude rows (5,000+ ft) and lower-voltage classes (161 kV, 138 kV, 115 
 
 ### 4.4 Default MVCD for GridSight
 
-GridSight defaults to **230 kV at sea level – 500 ft altitude**, which gives:
+GridSight defaults to **345 kV at sea level – 500 ft altitude** (Decision D6 + §14 resolution), which gives:
 
-> **MVCD = 4.0 ft**
+> **MVCD = 4.3 ft**
 
-This is the critical threshold. Vegetation closer than 4.0 ft to a 230 kV conductor at typical US lowland altitude is a NERC violation in real time.
+This is the critical threshold. Vegetation closer than 4.3 ft to a 345 kV conductor at typical US lowland altitude is a NERC violation in real time.
 
-If the curated footage clearly shows higher-altitude terrain or higher voltage class, the threshold is revised per the table above. The `run_metadata.json` `voltage_class` field records the assumption used for each pipeline run.
+If a future run targets a different voltage class, the threshold is revised per the table above. The `run_metadata.json` `voltage_class` field records the assumption used for each pipeline run.
 
 ### 4.5 Severity tiers — vegetation encroachment
 
-We anchor the severity tiers to multiples of the MVCD. The thresholds below assume the default 230 kV / sea level case (MVCD = 4.0 ft). For other voltage/altitude combinations, multiply by the appropriate MVCD.
+We anchor the severity tiers to multiples of the MVCD. The thresholds below assume the default 345 kV / sea level case (MVCD = 4.3 ft). For other voltage/altitude combinations, multiply by the appropriate MVCD.
 
 | Severity | Distance from conductor | Rationale |
 |---|---|---|
-| **Critical** | < 1.0 × MVCD (< 4 ft at 230 kV) | NERC violation in real time. Confirmed flashover risk. Immediate action required. |
-| **High** | 1.0 – 2.5 × MVCD (4 – 10 ft) | Just outside MVCD; conductor sway under load could violate. Active management threshold. |
-| **Moderate** | 2.5 – 6.25 × MVCD (10 – 25 ft) | Within typical ROW (~50–75 ft half-width); not immediately dangerous but worth tracking. |
+| **Critical** | < 1.0 × MVCD (< 4.3 ft at 345 kV) | NERC violation in real time. Confirmed flashover risk. Immediate action required. |
+| **High** | 1.0 – 2.5 × MVCD (4.3 – 10.75 ft) | Just outside MVCD; conductor sway under load could violate. Active management threshold. |
+| **Moderate** | 2.5 – 6.25 × MVCD (10.75 – 26.9 ft) | Within typical ROW (~75–87 ft half-width at 345 kV); not immediately dangerous but worth tracking. |
 | **Low / no_action** | > 6.25 × MVCD outside ROW | Outside ROW with no fall-in risk. Observed but not actionable. |
 
 **Fall-in risk** is a separate consideration. A tree growing 30 ft from a conductor but tall enough to fall into it is a fall-in risk — a category 2 / 3 encroachment under FAC-003-4 if it falls. The pipeline does not currently estimate fall-in risk; this is noted as a limitation and a candidate for future work.
@@ -317,7 +317,7 @@ These visual conditions are NOT vegetation encroachment and should not be flagge
 This section is the literal spec for `pipeline/severity.py`. The function signature is:
 
 ```python
-def score_finding(parsed: dict, marengo_score: float, voltage_class: str = "230kV") -> dict:
+def score_finding(parsed: dict, marengo_score: float, voltage_class: str = "345kV") -> dict:
     """
     Maps a Pegasus-parsed finding to a severity decision.
 
@@ -390,7 +390,7 @@ Keyword lists tunable during Phase 3 prompt iteration. The fallback is `"low"`, 
 
 ```
 distance_ft = parsed["vegetation_distance_estimate_ft"]
-mvcd_ft = MVCD_TABLE[voltage_class]["sea_level_to_500_ft"]   # 4.0 for 230 kV
+mvcd_ft = MVCD_TABLE[voltage_class]["sea_level_to_500_ft"]   # 4.3 for 345 kV (default)
 
 if distance_ft is None:
     # Pegasus couldn't estimate; fall back to keyword analysis

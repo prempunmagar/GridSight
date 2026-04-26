@@ -130,7 +130,7 @@ Build the end-to-end automated pipeline from indexed video to structured finding
 
 2. **Deduplicate and merge candidate timestamps.** Multiple queries will surface the same anomaly. Cluster timestamps within 10 seconds of each other into a single candidate finding. Keep the highest score and preserve all matching query strings. This becomes the input to clip extraction.
 
-3. **Build clip extraction.** For each candidate timestamp, extract a 12-second evidence clip centered on the timestamp using ffmpeg. Output to `data/clips_working/{finding_id}.mp4` (Stage 7 copies finalized clips to `app/public/clips/`). Naming scheme: `f{NNN}_{class}_{timestamp}.mp4`.
+3. **Build clip extraction.** For each candidate timestamp, extract a 15-second evidence clip centered on the timestamp using ffmpeg. Output to `data/clips_working/{finding_id}.mp4` (Stage 7 copies finalized clips to `app/public/clips/`). Naming scheme: `f{NNN}_{class}_{timestamp}.mp4`.
 
 4. **Build the Pegasus structured-description step.** Send each clip to Pegasus with a JSON-output prompt. Pegasus is a describer, **not a filter** — every clip produces a record that flows downstream, including those Pegasus assesses as `intact`. Filtering by condition happens in the dashboard, not here. First-pass prompt template:
 
@@ -195,7 +195,7 @@ Build the end-to-end automated pipeline from indexed video to structured finding
 
 - **Marengo recall is low for one or both classes.** Mitigation: query iteration, then if still failing, broaden to more general queries and rely on Pegasus to filter at description time.
 - **Pegasus drifts off JSON format.** Mitigation: explicit example in the prompt; fallback regex parser; if all else fails, ask Pegasus a follow-up "extract just the JSON" call.
-- **Clips are too short to give Pegasus enough context.** Mitigation: 12 seconds is a starting point; tune up to 15 if descriptions feel context-starved, down to 8 if Pegasus is hallucinating extra details.
+- **Clips are too short to give Pegasus enough context.** Mitigation: tuned during the build from 12 to 15 seconds (`pipeline/config.py` `CLIP_DURATION_SECONDS = 15`); descriptions stabilize at 15s without hallucinating extra detail.
 
 ---
 
@@ -264,7 +264,7 @@ Make the system's output usable. Ingest the telemetry file, attach full spatial 
 - **GeoJSON property field names don't match common GIS expectations.** Mitigation: keep field names lowercase snake_case, document them in the README.
 - **Telemetry timestamps drift out of sync with video timestamps.** Mitigation: telemetry generation script writes one row per second starting from t=0, matching the video's natural seconds; smoke test verifies the lookup at known timestamps.
 - **Pipeline-to-dashboard contract drift.** If the pipeline changes a field name, the dashboard breaks silently. Mitigation: a small TypeScript interface in `app/types/findings.ts` defines the expected schema; the pipeline writes to that schema; mismatches surface as TypeScript errors during `npm run dev`.
-- **Static `app/public/clips/` directory grows large.** ~25 clips at 12 seconds each ≈ 200 MB of MP4. Mitigation: re-encode clips to a lower bitrate during extraction (target 2 Mbps); commit them to the repo with Git LFS if size becomes an issue, otherwise keep them in-repo for the demo.
+- **Static `app/public/clips/` directory grows large.** ~25 clips at 15 seconds each ≈ 250 MB of MP4. Mitigation: re-encode clips to a lower bitrate during extraction (target 2 Mbps); commit them to the repo with Git LFS if size becomes an issue, otherwise keep them in-repo for the demo. (Canonical run produces 14 clips at ~38 MB total under this bitrate.)
 
 ---
 

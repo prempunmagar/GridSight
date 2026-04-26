@@ -88,11 +88,11 @@ Each unmatched prediction lands in `false_positives[]` with its full Pegasus out
       "pairing": "greedy by IoU descending; each GT and each prediction matches at most once"
     },
     "n_predictions_total": 14,
-    "n_predictions_used": 10,
+    "n_predictions_used": 9,
     "n_ground_truth_total": 15,
     "n_ground_truth_used": 15,
     "exclusions": {
-      "predictions_dropped_no_action": ["f003", "f004", ...],
+      "predictions_dropped_no_action": ["f003", "f004", "f010", "f011", "f012"],
       "ground_truth_dropped_class_other": []
     }
   },
@@ -138,7 +138,7 @@ Each unmatched prediction lands in `false_positives[]` with its full Pegasus out
 These are real and should be acknowledged honestly — the spec rewards calibrated reporting, not inflated numbers.
 
 - **Small N.** Current `ground_truth.csv` has 15 rows; the spec asks for 15–25. We're at the floor. F1 is a 2-sigfig number at this scale and a single relabel can swing it.
-- **Default IoU threshold is conservative.** Predictions are 12-second clips centered on a Marengo hit; ground-truth windows are the *visibility window* of the anomaly (often 1–10 s). Many GT windows are shorter than the prediction window, which caps achievable IoU at `gt_dur / pred_dur` even with perfect centering. Run with `--threshold 0.3` for a sensitivity check; the gap between 0.5 and 0.3 numbers is itself a finding worth reporting.
-- **Severity tiers are coarse.** The labeler's `severity` is a four-step ladder anchored to NERC FAC-003 / domain rules, but Pegasus only sees a 12-second clip and has no MVCD measurement. Within-one-tier agreement is the metric to lean on, not exact match.
+- **Default IoU threshold is conservative.** Predictions are 15-second clips centered on a Marengo hit; ground-truth windows are the *visibility window* of the anomaly (often 1–10 s). Many GT windows are shorter than the prediction window, which caps achievable IoU at `gt_dur / pred_dur` even with perfect centering. Run with `--threshold 0.3` for a sensitivity check; the gap between 0.5 and 0.3 numbers is itself a finding worth reporting.
+- **Severity tiers are coarse.** The labeler's `severity` is a four-step ladder anchored to NERC FAC-003 / domain rules, but Pegasus only sees a 15-second clip and has no MVCD measurement. Within-one-tier agreement is the metric to lean on, not exact match.
 - **Visual estimates of vegetation distance.** Pegasus's `vegetation_distance_estimate_ft` is a coarse visual estimate (~±5 ft per `docs/05_DOMAIN_KNOWLEDGE.md` §4.6). When this drives severity, expect noise.
 - **`other`-class GT is excluded.** Currently zero rows, so it's a no-op, but if labelers add `other` rows later (e.g., tower corrosion outside the two target classes), they won't move the F1 number — only the qualitative writeup picks them up.
