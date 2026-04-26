@@ -29,6 +29,9 @@ out/marengo_clip_embeddings.json
 out/marengo_text_embeddings.json
 out/pegasus_responses.json
 
+# Transient pipeline status surfaced to the dashboard
+app/public/data/run_status.json
+
 # Smoke-test artifact (regenerated on each run via ffmpeg)
 examples/test_video.mp4
 
