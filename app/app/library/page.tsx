@@ -2,17 +2,37 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Settings, UploadCloud, Play, RefreshCw, AlertTriangle } from "lucide-react";
+import {
+  AlertTriangle,
+  ChevronDown,
+  LayoutGrid,
+  PlayCircle,
+  RefreshCw,
+  Rows3,
+  Settings,
+  Timer,
+  UploadCloud,
+} from "lucide-react";
 
 import type { RunMetadata } from "@/types/metadata";
 import { SEVERITY_HEX } from "@/lib/severity";
 import StatusBanner, { useRunStatus } from "@/components/StatusBanner";
+import VideoThumb from "@/components/VideoThumb";
+
+const CATEGORIES: { k: string; label: string }[] = [
+  { k: "all", label: "All" },
+  { k: "suspension", label: "Suspension" },
+  { k: "tension", label: "Tension" },
+  { k: "vegetation", label: "Vegetation Sweep" },
+  { k: "substation", label: "Substation Approach" },
+];
 
 export default function LibraryPage() {
   const [meta, setMeta] = useState<RunMetadata | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [activeCat, setActiveCat] = useState("all");
   const status = useRunStatus(2000);
 
   useEffect(() => {
@@ -20,20 +40,20 @@ export default function LibraryPage() {
       .then((r) => (r.ok ? r.json() : null))
       .then(setMeta)
       .catch(() => setMeta(null));
-  }, [status.state]);
+  }, [status.run_id, status.state]);
 
   const isRunning = status.state === "running";
 
   const totalFindings = meta?.total_findings ?? 0;
   const critical = meta?.findings_by_severity.critical ?? 0;
-  const high = meta?.findings_by_severity.high ?? 0;
-  const moderate = meta?.findings_by_severity.moderate ?? 0;
-  const durationMin = meta ? Math.round(meta.source_video_duration_seconds / 60) : 0;
-  const durationSec = meta ? Math.round(meta.source_video_duration_seconds % 60) : 0;
-  const durLabel = useMemo(
-    () => `${String(durationMin).padStart(2, "0")}:${String(durationSec).padStart(2, "0")}`,
-    [durationMin, durationSec],
-  );
+  const durationSec = meta?.source_video_duration_seconds ?? 0;
+  const durLabel = useMemo(() => {
+    const m = Math.floor(durationSec / 60);
+    const s = Math.floor(durationSec % 60);
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }, [durationSec]);
+  const totalH = Math.floor(durationSec / 3600);
+  const totalM = Math.floor((durationSec % 3600) / 60);
 
   async function handleReanalyze() {
     setSubmitting(true);
@@ -81,33 +101,90 @@ export default function LibraryPage() {
       <StatusBanner status={status} />
 
       <div className="max-w-[1280px] mx-auto px-8 pt-8 pb-12">
-        <div className="mb-6">
-          <h1 className="text-[20px] font-semibold text-ink-primary">Videos</h1>
-          <p className="text-[13px] text-ink-secondary mt-1">
-            Drop a drone inspection video and its companion telemetry, or click an analyzed video to view findings.
-          </p>
+        <div className="flex flex-wrap gap-2 mb-5">
+          {CATEGORIES.map((c) => {
+            const active = activeCat === c.k;
+            return (
+              <button
+                key={c.k}
+                type="button"
+                onClick={() => setActiveCat(c.k)}
+                className={
+                  "h-8 px-3 rounded-full text-[12px] font-medium transition-colors border " +
+                  (active
+                    ? "bg-slate-900 text-white border-slate-900"
+                    : "bg-surface-panel text-ink-primary border-border hover:bg-surface-subtle")
+                }
+              >
+                {c.label}
+              </button>
+            );
+          })}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <div className="inline-flex bg-surface-panel border border-border rounded-md overflow-hidden">
+              <button
+                type="button"
+                className="h-8 inline-flex items-center gap-1.5 px-2.5 bg-slate-900 text-white text-[12px] font-medium"
+              >
+                <LayoutGrid size={13} /> Videos
+              </button>
+              <button
+                type="button"
+                className="h-8 inline-flex items-center gap-1.5 px-2.5 text-ink-secondary text-[12px] font-medium hover:bg-surface-subtle"
+              >
+                <Rows3 size={13} /> Tabular
+              </button>
+            </div>
+            <span className="ml-2 inline-flex items-center gap-1.5 text-[12px] text-ink-secondary">
+              <PlayCircle size={13} /> 1 video
+            </span>
+            <span className="ml-1 inline-flex items-center gap-1.5 text-[12px] text-ink-secondary">
+              <Timer size={13} /> {totalH > 0 && `${totalH} h `}{totalM} min
+            </span>
+          </div>
+          <button
+            type="button"
+            className="h-8 inline-flex items-center gap-1.5 px-2.5 rounded-md text-[12px] font-medium text-ink-secondary hover:bg-surface-subtle"
+          >
+            Sort by <span className="text-ink-primary">Recent upload</span>
+            <ChevronDown size={13} />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           <UploadCard />
 
           <VideoTile
             name={meta?.source_video_filename ?? "demo_video.mp4"}
-            corridor={meta?.corridor_description ?? "Generated demo corridor"}
-            voltage={meta?.voltage_class ?? "230kV"}
-            duration={durLabel}
+            durLabel={durLabel}
             findings={totalFindings}
             critical={critical}
-            high={high}
-            moderate={moderate}
             isRunning={isRunning}
             onReanalyze={() => setConfirmOpen(true)}
           />
         </div>
 
-        <p className="mt-8 text-[11px] text-slate-400 font-mono">
-          Re-analysis takes 5–15 min and uses AWS Bedrock credits. Pre-stage demo prep only — do not click during the live presentation.
-        </p>
+        <div className="mt-8 flex items-center justify-between text-[11px] text-slate-400">
+          <span>Showing 1 of 1</span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              className="h-7 px-2 rounded-md border border-border bg-surface-panel text-ink-secondary opacity-50"
+            >
+              Previous
+            </button>
+            <span className="font-mono text-ink-secondary px-2">Page 1 of 1</span>
+            <button
+              type="button"
+              className="h-7 px-2 rounded-md border border-border bg-surface-panel text-ink-primary hover:bg-surface-subtle"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       </div>
 
       {confirmOpen && (
@@ -139,8 +216,7 @@ function UploadCard() {
       onDrop={(e) => {
         e.preventDefault();
         setDrag(false);
-        // Decorative for the demo — upload not wired up.
-        alert("Upload is decorative for the demo. Use Re-analyze on the existing video.");
+        alert("Upload is decorative for the demo. Use the existing video tile to view findings.");
       }}
       className={
         "rounded-lg border-2 border-dashed cursor-pointer transition-colors flex flex-col p-5 " +
@@ -151,16 +227,16 @@ function UploadCard() {
       style={{ aspectRatio: "16 / 11" }}
     >
       <div className="flex-1 flex flex-col items-center justify-center text-center">
-        <span className="h-10 w-10 rounded-full bg-surface-subtle inline-flex items-center justify-center mb-3">
-          <UploadCloud size={18} color="#475569" strokeWidth={1.75} />
+        <span className="h-9 w-9 rounded-full bg-surface-subtle inline-flex items-center justify-center mb-2.5">
+          <UploadCloud size={17} color="#475569" strokeWidth={1.75} />
         </span>
-        <div className="text-[13px] font-semibold text-ink-primary">Drop drone footage + telemetry</div>
+        <div className="text-[13px] font-semibold text-ink-primary">Drop videos or documents</div>
         <div className="mt-2 flex flex-wrap gap-1 justify-center">
           <span className="font-mono text-[10px] text-ink-secondary bg-surface-subtle border border-border rounded-full px-2 py-0.5">
-            Video: MP4
+            Videos: MP4, MOV, AVI
           </span>
           <span className="font-mono text-[10px] text-ink-secondary bg-surface-subtle border border-border rounded-full px-2 py-0.5">
-            Telemetry: SRT or CSV
+            Telemetry: SRT, CSV
           </span>
         </div>
       </div>
@@ -168,13 +244,19 @@ function UploadCard() {
         <li className="flex items-start gap-1.5">
           <span style={{ color: SEVERITY_HEX.no_action }}>●</span>
           <span>
-            <span className="text-ink-secondary">Video:</span> Marengo indexing &amp; analysis
+            <span className="text-ink-secondary">Videos:</span> Marengo indexing &amp; analysis
           </span>
         </li>
         <li className="flex items-start gap-1.5">
           <span style={{ color: SEVERITY_HEX.high }}>●</span>
           <span>
-            <span className="text-ink-secondary">Telemetry:</span> DJI SRT or per-second CSV
+            <span className="text-ink-secondary">Documents:</span> NERC FAC-003 reference
+          </span>
+        </li>
+        <li className="flex items-start gap-1.5">
+          <span style={{ color: SEVERITY_HEX.low }}>●</span>
+          <span>
+            Max file size <span className="text-ink-secondary">4 GB</span> per video
           </span>
         </li>
       </ul>
@@ -185,46 +267,26 @@ function UploadCard() {
 
 interface VideoTileProps {
   name: string;
-  corridor: string;
-  voltage: string;
-  duration: string;
+  durLabel: string;
   findings: number;
   critical: number;
-  high: number;
-  moderate: number;
   isRunning: boolean;
   onReanalyze: () => void;
 }
 
-function VideoTile({
-  name,
-  corridor,
-  voltage,
-  duration,
-  findings,
-  critical,
-  high,
-  moderate,
-  isRunning,
-  onReanalyze,
-}: VideoTileProps) {
+function VideoTile({ name, durLabel, findings, critical, isRunning, onReanalyze }: VideoTileProps) {
   return (
-    <div className="rounded-lg overflow-hidden border border-border bg-surface-panel flex flex-col">
-      <div
-        className="relative bg-slate-900"
-        style={{ aspectRatio: "16 / 11" }}
+    <div className="text-left group relative">
+      <Link
+        href="/dashboard"
+        className="block"
+        aria-label={`View analysis for ${name}`}
       >
-        <Link
-          href="/dashboard"
-          className="absolute inset-0 group flex items-center justify-center"
-          aria-label={`View analysis for ${name}`}
+        <div
+          className="rounded-lg overflow-hidden border border-border bg-black relative"
+          style={{ aspectRatio: "16 / 11" }}
         >
-          <span className="h-12 w-12 rounded-full bg-white/95 inline-flex items-center justify-center transition-transform group-hover:scale-110">
-            <Play size={20} color="#0F172A" fill="#0F172A" />
-          </span>
-          <span className="absolute bottom-2 right-2 px-1.5 py-0.5 bg-black/75 rounded font-mono text-[10px] text-white">
-            {duration}
-          </span>
+          <VideoThumb durationLabel={durLabel} />
           {critical > 0 && (
             <span
               className="absolute top-2 left-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full font-mono text-[10px] font-semibold text-white"
@@ -233,49 +295,26 @@ function VideoTile({
               {critical} CRITICAL
             </span>
           )}
-        </Link>
-      </div>
-
-      <div className="p-3 flex flex-col gap-2">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <div className="text-[13px] font-medium text-ink-primary leading-snug truncate">{name}</div>
-            <div className="font-mono text-[10.5px] text-ink-tertiary mt-0.5">
-              {corridor} · {voltage}
-            </div>
-          </div>
         </div>
+      </Link>
 
-        <div className="flex items-center gap-3 text-[11px] text-ink-secondary">
-          <span className="font-mono">{findings} findings</span>
-          <span className="inline-flex items-center gap-1 font-mono" style={{ color: SEVERITY_HEX.critical }}>
-            ● {critical}
-          </span>
-          <span className="inline-flex items-center gap-1 font-mono" style={{ color: SEVERITY_HEX.high }}>
-            ● {high}
-          </span>
-          <span className="inline-flex items-center gap-1 font-mono" style={{ color: SEVERITY_HEX.moderate }}>
-            ● {moderate}
-          </span>
-        </div>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          onReanalyze();
+        }}
+        disabled={isRunning}
+        title="Re-analyze on the canonical inputs"
+        className="absolute top-2 right-2 h-7 w-7 inline-flex items-center justify-center rounded-md bg-white/90 text-ink-primary border border-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white disabled:opacity-50"
+      >
+        <RefreshCw size={13} className={isRunning ? "animate-spin" : ""} />
+      </button>
 
-        <div className="flex items-center gap-2 mt-1">
-          <Link
-            href="/dashboard"
-            className="flex-1 h-8 inline-flex items-center justify-center gap-1.5 rounded-md bg-slate-900 text-white text-[12px] font-medium hover:bg-black"
-          >
-            View analysis
-          </Link>
-          <button
-            type="button"
-            disabled={isRunning}
-            onClick={onReanalyze}
-            className="h-8 inline-flex items-center gap-1.5 px-3 rounded-md border border-border bg-surface-panel text-[12px] font-medium text-ink-primary hover:bg-surface-subtle disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Re-run the pipeline on the canonical inputs"
-          >
-            <RefreshCw size={13} className={isRunning ? "animate-spin" : ""} />
-            {isRunning ? "Running…" : "Re-analyze"}
-          </button>
+      <div className="mt-2 px-0.5">
+        <div className="text-[12.5px] font-medium text-ink-primary leading-snug truncate">{name}</div>
+        <div className="font-mono text-[10.5px] text-ink-tertiary mt-0.5">
+          {findings} findings · {isRunning ? "analyzing…" : "analyzed"}
         </div>
       </div>
     </div>
