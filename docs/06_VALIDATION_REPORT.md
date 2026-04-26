@@ -347,13 +347,13 @@ The team is committed to honest reporting per Decision D14 in [`01_MASTER.md`](0
 GridSight is scoped to:
 - **Two anomaly classes**: insulator damage and vegetation encroachment. Tower corrosion, conductor damage, hardware loss, and foreign object intrusion are out of scope.
 - **Lattice steel suspension towers** as the primary asset type.
-- **One voltage class assumption per run** (230 kV default for the demo).
+- **One voltage class assumption per run** (345 kV default for the demo, MVCD = 4.3 ft).
 - **Daylight conditions only.**
 
 ### 8.2 Data limitations
 
 - **Curated demo video** is 13:32 of stitched 1080p footage from publicly available drone inspection videos. Per Decision D15, the cut is deliberately damage-rich; field damage rates per mile are substantially lower.
-- **Telemetry is generated**, not captured by a real drone. Format is real (DJI SRT-compatible CSV); per-second values trace a chosen US transmission corridor (southern Illinois, 230 kV). Coordinates are representative, not measurements of where the YouTube footage was originally captured. This is disclosed in the README, demo video, and live demo.
+- **Telemetry is generated**, not captured by a real drone. Format is real (DJI SRT-compatible CSV); per-second values trace a chosen US transmission corridor (southern Illinois, 345 kV). Coordinates are representative, not measurements of where the YouTube footage was originally captured. This is disclosed in the README, demo video, and live demo.
 - **Ground truth anomalies are mostly tier `low`**: 9 of 15 (60%). Pegasus's drone-altitude visual discrimination is least confident at the low-severity boundary — most of the FN count is the system being conservative on subtle defects.
 
 ### 8.3 Evaluation limitations
