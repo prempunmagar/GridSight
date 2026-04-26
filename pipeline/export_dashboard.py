@@ -85,6 +85,20 @@ def copy_clips(findings: list[dict], working_dir: Path, dest_dir: Path) -> None:
             shutil.copy2(src, dst)
 
 
+def copy_workorder_exports(out_dir: Path, dest_dir: Path) -> None:
+    """Mirror the canonical CSV + GeoJSON into the dashboard's public/data so the
+    Export dropdown can serve them as static assets. Spec (Track 02): "Export to
+    CSV, PDF, or GeoJSON" / "A dashboard is not a work order. Export in CSV /
+    GeoJSON for real systems." — both formats must be downloadable from the UI.
+    """
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    for name in ("findings.csv", "findings.geojson"):
+        src = out_dir / name
+        if not src.exists():
+            raise FileNotFoundError(f"expected {src} from earlier export stage; run export_csv/export_geojson first")
+        shutil.copy2(src, dest_dir / name)
+
+
 def export_all(findings: list[dict], coords: list[tuple[float, float]],
                start_dt: str, end_dt: str,
                video_filename: str, video_duration_s: float,
@@ -96,3 +110,4 @@ def export_all(findings: list[dict], coords: list[tuple[float, float]],
                        corridor_description, pipeline_version,
                        config.APP_DATA_DIR / "run_metadata.json")
     copy_clips(findings, config.CLIPS_WORKING_DIR, config.APP_CLIPS_DIR)
+    copy_workorder_exports(config.OUT_DIR, config.APP_DATA_DIR)

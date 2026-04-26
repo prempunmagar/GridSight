@@ -12,29 +12,42 @@ interface Props {
   onSelect: (id: string) => void;
 }
 
+/** Width of each rendered cell in seconds. Keeps DOM to ~160 elements for a
+ *  13-minute flight while still giving 5-second granularity for click targets. */
+const BUCKET_SECONDS = 5;
+
 interface Cell {
   severity: keyof typeof SEVERITY_HEX | null;
   findingId: string | null;
+  /** Start second of this bucket (for tooltip). */
+  bucketStart: number;
 }
 
 export default function Timeline({ findings, totalSeconds, selectedId, onSelect }: Props) {
   const total = Math.max(60, Math.floor(totalSeconds));
+  const numBuckets = Math.ceil(total / BUCKET_SECONDS);
 
   const cells = useMemo<Cell[]>(() => {
-    const out: Cell[] = Array.from({ length: total }, () => ({ severity: null, findingId: null }));
+    const out: Cell[] = Array.from({ length: numBuckets }, (_, i) => ({
+      severity: null,
+      findingId: null,
+      bucketStart: i * BUCKET_SECONDS,
+    }));
+
     findings.forEach((f) => {
       if (f.severity === "no_action") return;
-      const start = Math.max(0, Math.floor(f.timestamp_seconds - 4));
-      const end = Math.min(total - 1, Math.floor(f.timestamp_seconds + 4));
-      for (let s = start; s <= end; s++) {
-        const cur = out[s];
+      // Spread the finding across its ±4 s neighbourhood, mapped to buckets.
+      const startBucket = Math.max(0, Math.floor((f.timestamp_seconds - 4) / BUCKET_SECONDS));
+      const endBucket = Math.min(numBuckets - 1, Math.floor((f.timestamp_seconds + 4) / BUCKET_SECONDS));
+      for (let b = startBucket; b <= endBucket; b++) {
+        const cur = out[b];
         if (!cur.severity || severityRank(f.severity) < severityRank(cur.severity)) {
-          out[s] = { severity: f.severity, findingId: f.finding_id };
+          out[b] = { severity: f.severity, findingId: f.finding_id, bucketStart: b * BUCKET_SECONDS };
         }
       }
     });
     return out;
-  }, [findings, total]);
+  }, [findings, numBuckets]);
 
   const minMarks = useMemo(() => {
     const m: number[] = [];
@@ -53,7 +66,7 @@ export default function Timeline({ findings, totalSeconds, selectedId, onSelect 
             Timeline
           </span>
           <span className="font-mono text-[10px] text-slate-400">
-            {Math.floor(total / 60)} min · 1 col / sec · {findings.filter((f) => f.severity !== "no_action").length} actionable
+            {Math.floor(total / 60)} min · 1 col / {BUCKET_SECONDS} sec · {findings.filter((f) => f.severity !== "no_action").length} actionable
           </span>
         </div>
         {selected && (
@@ -87,14 +100,16 @@ export default function Timeline({ findings, totalSeconds, selectedId, onSelect 
               onClick={() => c.findingId && onSelect(c.findingId)}
               className="tt h-full"
               style={{
-                width: `${100 / total}%`,
+                width: `${100 / numBuckets}%`,
                 background: c.severity ? SEVERITY_HEX[c.severity] : "#F1F5F9",
-                opacity: c.severity ? (selected && selected.finding_id === c.findingId ? 1 : 0.92) : 1,
+                opacity: c.severity
+                  ? selected && selected.finding_id === c.findingId ? 1 : 0.92
+                  : 1,
               }}
             >
               {c.severity && (
                 <span className="tt-pop">
-                  {`${formatT(i)} · ${SEVERITY_LABEL[c.severity].toUpperCase()} · ${c.findingId}`}
+                  {`${formatT(c.bucketStart)}–${formatT(c.bucketStart + BUCKET_SECONDS)} · ${SEVERITY_LABEL[c.severity].toUpperCase()} · ${c.findingId}`}
                 </span>
               )}
             </button>

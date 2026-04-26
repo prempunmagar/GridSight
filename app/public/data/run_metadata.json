@@ -1,7 +1,7 @@
 {
-  "run_id": "run_20260426_103552",
-  "run_datetime_utc": "2026-04-26T10:35:52.244431+00:00",
-  "pipeline_version": "6431d89",
+  "run_id": "run_20260426_123939",
+  "run_datetime_utc": "2026-04-26T12:39:39.084297+00:00",
+  "pipeline_version": "6264812",
   "source_video_filename": "demo_video.mp4",
   "source_video_duration_seconds": 812.987695,
   "voltage_class": "230kV",
@@ -10,10 +10,10 @@
   "total_findings": 14,
   "findings_by_severity": {
     "critical": 2,
-    "high": 2,
+    "high": 1,
     "moderate": 6,
     "low": 0,
-    "no_action": 4
+    "no_action": 5
   },
   "findings_by_class": {
     "insulator_damage": 8,
@@ -21,8 +21,8 @@
     "other": 0
   },
   "findings_by_condition": {
-    "intact": 4,
-    "damaged": 10,
+    "intact": 5,
+    "damaged": 9,
     "contaminated": 0,
     "unclear": 0
   }

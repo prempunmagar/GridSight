@@ -18,8 +18,8 @@ export default function ExportButtons() {
 
   function handleAction(action: "csv" | "geojson" | "pdf") {
     setOpen(false);
-    if (action === "csv") triggerDownload("/data/findings.csv");
-    else if (action === "geojson") triggerDownload("/data/findings.geojson");
+    if (action === "csv") triggerDownload("/data/findings.csv", "gridsight-findings.csv");
+    else if (action === "geojson") triggerDownload("/data/findings.geojson", "gridsight-findings.geojson");
     else window.print();
   }
 
@@ -45,10 +45,10 @@ export default function ExportButtons() {
   );
 }
 
-function triggerDownload(href: string) {
+function triggerDownload(href: string, filename: string) {
   const a = document.createElement("a");
   a.href = href;
-  a.download = "";
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   a.remove();

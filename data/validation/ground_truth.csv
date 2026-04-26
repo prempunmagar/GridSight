@@ -1,16 +1,16 @@
 id,start_seconds,end_seconds,class,severity,description,notes
-1,102,103,vegetation_encroachment,low,"""trees close to the right side of distant tower.""",needs_human_review
-2,155,162,vegetation_encroachment,low,"""tall, dry trees in the surrounding area""",needs_human_review
-3,170,194,insulator_damage,low ,"""corrosion visible on ends of insulator and tower body""",borderline
-4,195,210,insulator_damage,moderate,"""consistent corrosion between disks of two insulator lines in a v-formation, as well""",
-5,211,222,insulator_damage,low,"""discoloration streak visible on ceramic disk""",borderline
-6,403,406,vegetation_encroachment,moderate,"""trees close to the right side of a red and white tower. More than half the apparent distance to the height of the conductor.""",borderline
-7,427,430,vegetation_encroachment,high,"""the base of the tower is being covered by trees up to half the height of the conductor.""",needs_human_review
-8,534,535,vegetation_encroachment,low,"""trees appear close to the base of a tower.""",borderline
-9,584,589,vegetation_encroachment,moderate,"""tall brush at base of tower""",
-10,591,633,insulator_damage,low,"""copper rust""",
-11,659,667,vegetation_encroachment,moderate,"""tall trees that are visually at the height of the conductors. Distance ambiguous""","""borderline, needs_human_review"""
-12,674,685,insulator_damage,low,"""rust on the ends of the insulators and in-between disks""",
-13,700,704,insulator_damage,low,"""rust on the connecting rods between insulators and the tower body""",
-14,733,753,insulator_damage,low,"""white marks on cermaic disks, which could be either bird streaks or physical damage.""",needs_human_review
-15,753,774,insulator_damage,moderate,"""severe corrosion on the nuts and bolts connecting the insulator and the conductor.""",
+1,102,103,vegetation_encroachment,low,trees close to the right side of distant tower.,needs_human_review
+2,155,162,vegetation_encroachment,low,"tall, dry trees in the surrounding area",needs_human_review
+3,170,194,insulator_damage,low,corrosion visible on ends of insulator and tower body,borderline
+4,195,210,insulator_damage,moderate,"consistent corrosion between disks of two insulator lines in a v-formation, as well",
+5,211,222,insulator_damage,low,discoloration streak visible on ceramic disk,borderline
+6,403,406,vegetation_encroachment,moderate,trees close to the right side of a red and white tower — more than half the apparent distance to the height of the conductor.,borderline
+7,427,430,vegetation_encroachment,high,the base of the tower is being covered by trees up to half the height of the conductor.,needs_human_review
+8,534,535,vegetation_encroachment,low,trees appear close to the base of a tower.,borderline
+9,584,589,vegetation_encroachment,moderate,tall brush at base of tower,
+10,591,633,insulator_damage,low,copper rust,
+11,659,667,vegetation_encroachment,moderate,"tall trees that are visually at the height of the conductors — distance ambiguous","borderline, needs_human_review"
+12,674,685,insulator_damage,low,rust on the ends of the insulators and in-between disks,
+13,700,704,insulator_damage,low,rust on the connecting rods between insulators and the tower body,
+14,733,753,insulator_damage,low,white marks on ceramic disks — could be either bird streaks or physical damage.,needs_human_review
+15,753,774,insulator_damage,moderate,severe corrosion on the nuts and bolts connecting the insulator and the conductor.,

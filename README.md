@@ -7,16 +7,61 @@
 ---
 
 ## What this is
+## Executive Summary
 
 GridSight processes drone footage of high-voltage transmission lines and detects two anomaly classes: **damaged insulators** and **vegetation encroachment**. It uses TwelveLabs Marengo 3.0 and Pegasus 1.2 via AWS Bedrock, attaches GPS from a companion drone telemetry file, and produces a Next.js dashboard with map view, evidence clips, and CSV/GeoJSON exports.
+GridSight is an automated pipeline that processes standard drone inspection inputs (video footage and telemetry data) to detect and locate critical vulnerabilities on high-voltage transmission lines. 
 
 Full project context is in [`docs/01_MASTER.md`](docs/01_MASTER.md). Don't start working without reading at least Sections 1–5 of that doc.
+Built on TwelveLabs Marengo 3.0 and Pegasus 1.2 via AWS Bedrock, GridSight targets two specific, regulation-grounded anomaly classes: **damaged insulators** and **vegetation encroachment** (anchored to NERC FAC-003 standards). It produces a Next.js dashboard featuring a map view, telemetry inspector, click-to-play evidence clips, and enterprise-ready CSV/GeoJSON exports.
+
+**This is an operations console, not a video gallery.** It turns hours of tedious frame-by-frame human review into an actionable, georeferenced list of verifiable findings.
 
 ---
 
 ## Run the dashboard (no AWS needed)
+## Architecture at a Glance
 
 If you just want to see the finished product:
+GridSight operates via a decoupled batch-processing architecture. The Python pipeline runs once, processes the video/telemetry, and writes static JSON and MP4 evidence clips to disk. The Next.js dashboard reads these static files at startup. 
+
+This deliberate separation means **anyone can clone this repo and run the dashboard immediately without AWS credentials**. 
+
+* **Stage 1: Ingest** — Loads 1080p drone footage and per-second CSV telemetry (parsed directly from a DJI SRT file).
+* **Stage 2: Index** — Makes the video semantically searchable via TwelveLabs Marengo.
+* **Stage 3: Detect** — Uses natural-language queries to flag candidate moments of damage or encroachment.
+* **Stage 4: Extract** — Slices 12-second evidence clips around candidate timestamps via `ffmpeg`.
+* **Stage 5: Describe** — Uses TwelveLabs Pegasus to generate structured JSON condition assessments for each clip.
+* **Stage 6: Score & Locate** — Applies an automated NERC-grounded severity rules engine and attaches exact GPS coordinates/heading/altitude from the telemetry sync.
+* **Stage 7: Export** — Emits CSV, GeoJSON, and the static dashboard assets.
+
+---
+
+## Deliberate Scope & Anti-Goals
+
+To deliver a reliable, judge-ready system in 24 hours, we made explicit trade-offs. We are not shy about what we scoped out:
+
+1. **Asset-Centric, Not Anomaly-Only:** Pegasus acts as a describer, not a filter. If Marengo flags an asset but Pegasus determines it is `intact`, we keep the record as a `no_action` finding. This honestly exposes our false-positive surface and provides a substrate for full-inventory asset monitoring.
+2. **No API Layer:** There is no live Python backend or database running behind the dashboard. It is a pure static-file contract. This eliminates runtime crashes on demo day.
+3. **Focused Anomaly Classes:** We strictly limited detection to Insulator Damage and Vegetation Encroachment on Lattice Steel Suspension Towers. We intentionally ignored tower corrosion, conductor strand damage, and wood poles to ensure our severity grading remained robust.
+4. **No Sub-Meter GPS Illusions:** We target ±50m accuracy relative to the drone's position, which is entirely sufficient for work-order routing.
+
+---
+
+## Judging Guide: Where to look
+
+| Document | What it covers |
+|---|---|
+| **`docs/TECH.md`** | **Start Here.** A 2-page summary of our TwelveLabs integration strategy, prompt engineering, and performance limitations. |
+| **`docs/06_VALIDATION_REPORT.md`** | Precision, recall, F1 metrics, confusion matrix, and an honest analysis of our false positives. |
+| `docs/01_MASTER.md` | The complete source of truth on system architecture and project decisions. |
+| `docs/05_DOMAIN_KNOWLEDGE.md` | Our NERC FAC-003 regulatory grounding and severity rule definitions. |
+
+---
+
+## Quickstart: Run the Dashboard (No AWS needed)
+
+To see the finished product with the canonical pipeline output:
 
 ```bash
 cd app
@@ -50,6 +95,9 @@ python examples/bedrock_smoke_test.py
 
 # Run the full pipeline
 python pipeline/run_all.py
+
+# OR run this from the repo root
+python -m pipeline.run_all
 
 # View results
 cd app && npm run dev

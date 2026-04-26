@@ -1,0 +1,371 @@
+{
+  "metadata": {
+    "computed_at_utc": "2026-04-26T12:01:12.154611+00:00",
+    "findings_source": "C:\\Users\\TheJournal65\\Documents\\Claude\\Projects\\Hackathon\\GridSight\\out\\findings.json",
+    "ground_truth_source": "C:\\Users\\TheJournal65\\Documents\\Claude\\Projects\\Hackathon\\GridSight\\data\\validation\\ground_truth.csv",
+    "matching": {
+      "rule": "iou>=0.5",
+      "definition": "intersection / union of [start_seconds, end_seconds]; class agreement is required for a TP, mismatched-class pairs count as FP+FN",
+      "pairing": "greedy by IoU descending; each GT and each prediction matches at most once"
+    },
+    "n_predictions_total": 14,
+    "n_predictions_used": 10,
+    "n_ground_truth_total": 15,
+    "n_ground_truth_used": 15,
+    "exclusions": {
+      "predictions_dropped_no_action": [
+        "f003",
+        "f004",
+        "f010",
+        "f012"
+      ],
+      "ground_truth_dropped_class_other": []
+    }
+  },
+  "by_class": {
+    "insulator_damage": {
+      "tp": 1,
+      "fp": 3,
+      "fn": 7,
+      "precision": 0.25,
+      "recall": 0.125,
+      "f1": 0.167,
+      "support_predictions": 4,
+      "support_ground_truth": 8
+    },
+    "vegetation_encroachment": {
+      "tp": 1,
+      "fp": 5,
+      "fn": 6,
+      "precision": 0.167,
+      "recall": 0.143,
+      "f1": 0.154,
+      "support_predictions": 6,
+      "support_ground_truth": 7
+    }
+  },
+  "overall": {
+    "tp": 2,
+    "fp": 8,
+    "fn": 13,
+    "precision": 0.2,
+    "recall": 0.133,
+    "f1": 0.16
+  },
+  "confusion_matrix": {
+    "rows": [
+      "insulator_damage",
+      "vegetation_encroachment",
+      "none"
+    ],
+    "cols": [
+      "insulator_damage",
+      "vegetation_encroachment",
+      "none"
+    ],
+    "matrix": [
+      [
+        1,
+        0,
+        7
+      ],
+      [
+        0,
+        1,
+        6
+      ],
+      [
+        3,
+        5,
+        0
+      ]
+    ]
+  },
+  "severity_calibration": {
+    "matched_pairs": [
+      {
+        "gt_id": 11,
+        "finding_id": "f009",
+        "iou": 0.667,
+        "gt_class": "vegetation_encroachment",
+        "pred_class": "vegetation_encroachment",
+        "class_match": true,
+        "gt_severity": "moderate",
+        "pred_severity": "moderate",
+        "severity_match": true
+      },
+      {
+        "gt_id": 15,
+        "finding_id": "f013",
+        "iou": 0.571,
+        "gt_class": "insulator_damage",
+        "pred_class": "insulator_damage",
+        "class_match": true,
+        "gt_severity": "moderate",
+        "pred_severity": "high",
+        "severity_match": false
+      }
+    ],
+    "exact_match_rate": 0.5,
+    "within_one_tier_rate": 1.0,
+    "n_pairs": 2
+  },
+  "false_positives": [
+    {
+      "finding_id": "f001",
+      "class": "vegetation_encroachment",
+      "timestamp_seconds": 89.375,
+      "start_seconds": 83.375,
+      "end_seconds": 95.375,
+      "severity": "moderate",
+      "specific_defects": [
+        "tall trees within right-of-way at conductor height"
+      ],
+      "matched_queries": [
+        "trees taller than power line clearance",
+        "vegetation overgrown into transmission line right-of-way"
+      ],
+      "marengo_score": 0.1614433377981186,
+      "pegasus_confidence": "medium"
+    },
+    {
+      "finding_id": "f002",
+      "class": "vegetation_encroachment",
+      "timestamp_seconds": 100.625,
+      "start_seconds": 94.625,
+      "end_seconds": 106.625,
+      "severity": "moderate",
+      "specific_defects": [
+        "tall trees within right-of-way at conductor height"
+      ],
+      "matched_queries": [
+        "vegetation overgrown into transmission line right-of-way"
+      ],
+      "marengo_score": 0.1395709067583084,
+      "pegasus_confidence": "medium"
+    },
+    {
+      "finding_id": "f005",
+      "class": "vegetation_encroachment",
+      "timestamp_seconds": 376.0,
+      "start_seconds": 370.0,
+      "end_seconds": 382.0,
+      "severity": "moderate",
+      "specific_defects": [
+        "tall trees within right-of-way at conductor height"
+      ],
+      "matched_queries": [
+        "vegetation overgrown into transmission line right-of-way"
+      ],
+      "marengo_score": 0.13504008948802948,
+      "pegasus_confidence": "medium"
+    },
+    {
+      "finding_id": "f006",
+      "class": "vegetation_encroachment",
+      "timestamp_seconds": 404.125,
+      "start_seconds": 398.125,
+      "end_seconds": 410.125,
+      "severity": "moderate",
+      "specific_defects": [
+        "tall trees within right-of-way at conductor height"
+      ],
+      "matched_queries": [
+        "trees taller than power line clearance",
+        "vegetation overgrown into transmission line right-of-way"
+      ],
+      "marengo_score": 0.16546788811683655,
+      "pegasus_confidence": "medium"
+    },
+    {
+      "finding_id": "f007",
+      "class": "vegetation_encroachment",
+      "timestamp_seconds": 432.25,
+      "start_seconds": 426.25,
+      "end_seconds": 438.25,
+      "severity": "moderate",
+      "specific_defects": [
+        "tall trees within right-of-way at conductor height"
+      ],
+      "matched_queries": [
+        "trees taller than power line clearance",
+        "vegetation overgrown into transmission line right-of-way"
+      ],
+      "marengo_score": 0.16346000134944916,
+      "pegasus_confidence": "medium"
+    },
+    {
+      "finding_id": "f008",
+      "class": "insulator_damage",
+      "timestamp_seconds": 615.125,
+      "start_seconds": 609.125,
+      "end_seconds": 621.125,
+      "severity": "critical",
+      "specific_defects": [
+        "cracks in porcelain disk",
+        "rust streaks on cap-and-pin hardware"
+      ],
+      "matched_queries": [
+        "damaged or broken insulator disk on transmission tower",
+        "insulator string with visible contamination or burn marks",
+        "missing or shattered porcelain insulator",
+        "rust streaks on insulator hardware"
+      ],
+      "marengo_score": 0.1952088326215744,
+      "pegasus_confidence": "high"
+    },
+    {
+      "finding_id": "f011",
+      "class": "insulator_damage",
+      "timestamp_seconds": 701.875,
+      "start_seconds": 695.875,
+      "end_seconds": 707.875,
+      "severity": "high",
+      "specific_defects": [
+        "rust streaks on cap-and-pin hardware"
+      ],
+      "matched_queries": [
+        "damaged or broken insulator disk on transmission tower",
+        "rust streaks on insulator hardware"
+      ],
+      "marengo_score": 0.17605730891227722,
+      "pegasus_confidence": "medium"
+    },
+    {
+      "finding_id": "f014",
+      "class": "insulator_damage",
+      "timestamp_seconds": 791.625,
+      "start_seconds": 785.625,
+      "end_seconds": 797.625,
+      "severity": "critical",
+      "specific_defects": [
+        "cracked porcelain disk",
+        "visible burn mark"
+      ],
+      "matched_queries": [
+        "tree branches close to or touching power line conductors"
+      ],
+      "marengo_score": 0.15680502355098724,
+      "pegasus_confidence": "high"
+    }
+  ],
+  "false_negatives": [
+    {
+      "gt_id": 1,
+      "class": "vegetation_encroachment",
+      "start_seconds": 102.0,
+      "end_seconds": 103.0,
+      "severity": "low",
+      "description": "\"trees close to the right side of distant tower.\"",
+      "notes": "needs_human_review"
+    },
+    {
+      "gt_id": 2,
+      "class": "vegetation_encroachment",
+      "start_seconds": 155.0,
+      "end_seconds": 162.0,
+      "severity": "low",
+      "description": "\"tall, dry trees in the surrounding area\"",
+      "notes": "needs_human_review"
+    },
+    {
+      "gt_id": 3,
+      "class": "insulator_damage",
+      "start_seconds": 170.0,
+      "end_seconds": 194.0,
+      "severity": "low",
+      "description": "\"corrosion visible on ends of insulator and tower body\"",
+      "notes": "borderline"
+    },
+    {
+      "gt_id": 4,
+      "class": "insulator_damage",
+      "start_seconds": 195.0,
+      "end_seconds": 210.0,
+      "severity": "moderate",
+      "description": "\"consistent corrosion between disks of two insulator lines in a v-formation, as well\"",
+      "notes": ""
+    },
+    {
+      "gt_id": 5,
+      "class": "insulator_damage",
+      "start_seconds": 211.0,
+      "end_seconds": 222.0,
+      "severity": "low",
+      "description": "\"discoloration streak visible on ceramic disk\"",
+      "notes": "borderline"
+    },
+    {
+      "gt_id": 6,
+      "class": "vegetation_encroachment",
+      "start_seconds": 403.0,
+      "end_seconds": 406.0,
+      "severity": "moderate",
+      "description": "\"trees close to the right side of a red and white tower. More than half the apparent distance to the height of the conductor.\"",
+      "notes": "borderline"
+    },
+    {
+      "gt_id": 7,
+      "class": "vegetation_encroachment",
+      "start_seconds": 427.0,
+      "end_seconds": 430.0,
+      "severity": "high",
+      "description": "\"the base of the tower is being covered by trees up to half the height of the conductor.\"",
+      "notes": "needs_human_review"
+    },
+    {
+      "gt_id": 8,
+      "class": "vegetation_encroachment",
+      "start_seconds": 534.0,
+      "end_seconds": 535.0,
+      "severity": "low",
+      "description": "\"trees appear close to the base of a tower.\"",
+      "notes": "borderline"
+    },
+    {
+      "gt_id": 9,
+      "class": "vegetation_encroachment",
+      "start_seconds": 584.0,
+      "end_seconds": 589.0,
+      "severity": "moderate",
+      "description": "\"tall brush at base of tower\"",
+      "notes": ""
+    },
+    {
+      "gt_id": 10,
+      "class": "insulator_damage",
+      "start_seconds": 591.0,
+      "end_seconds": 633.0,
+      "severity": "low",
+      "description": "\"copper rust\"",
+      "notes": ""
+    },
+    {
+      "gt_id": 12,
+      "class": "insulator_damage",
+      "start_seconds": 674.0,
+      "end_seconds": 685.0,
+      "severity": "low",
+      "description": "\"rust on the ends of the insulators and in-between disks\"",
+      "notes": ""
+    },
+    {
+      "gt_id": 13,
+      "class": "insulator_damage",
+      "start_seconds": 700.0,
+      "end_seconds": 704.0,
+      "severity": "low",
+      "description": "\"rust on the connecting rods between insulators and the tower body\"",
+      "notes": ""
+    },
+    {
+      "gt_id": 14,
+      "class": "insulator_damage",
+      "start_seconds": 733.0,
+      "end_seconds": 753.0,
+      "severity": "low",
+      "description": "\"white marks on cermaic disks, which could be either bird streaks or physical damage.\"",
+      "notes": "needs_human_review"
+    }
+  ]
+}
