@@ -1,15 +1,15 @@
 {
   "metadata": {
-    "computed_at_utc": "2026-04-26T12:01:12.154611+00:00",
-    "findings_source": "C:\\Users\\TheJournal65\\Documents\\Claude\\Projects\\Hackathon\\GridSight\\out\\findings.json",
-    "ground_truth_source": "C:\\Users\\TheJournal65\\Documents\\Claude\\Projects\\Hackathon\\GridSight\\data\\validation\\ground_truth.csv",
+    "computed_at_utc": "2026-04-26T14:38:14.642658+00:00",
+    "findings_source": "C:\\Users\\prems\\Downloads\\GridSight\\out\\findings.json",
+    "ground_truth_source": "C:\\Users\\prems\\Downloads\\GridSight\\data\\validation\\ground_truth.csv",
     "matching": {
       "rule": "iou>=0.5",
       "definition": "intersection / union of [start_seconds, end_seconds]; class agreement is required for a TP, mismatched-class pairs count as FP+FN",
       "pairing": "greedy by IoU descending; each GT and each prediction matches at most once"
     },
     "n_predictions_total": 14,
-    "n_predictions_used": 10,
+    "n_predictions_used": 9,
     "n_ground_truth_total": 15,
     "n_ground_truth_used": 15,
     "exclusions": {
@@ -17,6 +17,7 @@
         "f003",
         "f004",
         "f010",
+        "f011",
         "f012"
       ],
       "ground_truth_dropped_class_other": []
@@ -25,12 +26,12 @@
   "by_class": {
     "insulator_damage": {
       "tp": 1,
-      "fp": 3,
+      "fp": 2,
       "fn": 7,
-      "precision": 0.25,
+      "precision": 0.333,
       "recall": 0.125,
-      "f1": 0.167,
-      "support_predictions": 4,
+      "f1": 0.182,
+      "support_predictions": 3,
       "support_ground_truth": 8
     },
     "vegetation_encroachment": {
@@ -46,11 +47,11 @@
   },
   "overall": {
     "tp": 2,
-    "fp": 8,
+    "fp": 7,
     "fn": 13,
-    "precision": 0.2,
+    "precision": 0.222,
     "recall": 0.133,
-    "f1": 0.16
+    "f1": 0.167
   },
   "confusion_matrix": {
     "rows": [
@@ -75,7 +76,7 @@
         6
       ],
       [
-        3,
+        2,
         5,
         0
       ]
@@ -84,26 +85,26 @@
   "severity_calibration": {
     "matched_pairs": [
       {
-        "gt_id": 11,
-        "finding_id": "f009",
-        "iou": 0.667,
-        "gt_class": "vegetation_encroachment",
-        "pred_class": "vegetation_encroachment",
-        "class_match": true,
-        "gt_severity": "moderate",
-        "pred_severity": "moderate",
-        "severity_match": true
-      },
-      {
         "gt_id": 15,
         "finding_id": "f013",
-        "iou": 0.571,
+        "iou": 0.714,
         "gt_class": "insulator_damage",
         "pred_class": "insulator_damage",
         "class_match": true,
         "gt_severity": "moderate",
         "pred_severity": "high",
         "severity_match": false
+      },
+      {
+        "gt_id": 11,
+        "finding_id": "f009",
+        "iou": 0.533,
+        "gt_class": "vegetation_encroachment",
+        "pred_class": "vegetation_encroachment",
+        "class_match": true,
+        "gt_severity": "moderate",
+        "pred_severity": "moderate",
+        "severity_match": true
       }
     ],
     "exact_match_rate": 0.5,
@@ -115,8 +116,8 @@
       "finding_id": "f001",
       "class": "vegetation_encroachment",
       "timestamp_seconds": 89.375,
-      "start_seconds": 83.375,
-      "end_seconds": 95.375,
+      "start_seconds": 81.875,
+      "end_seconds": 96.875,
       "severity": "moderate",
       "specific_defects": [
         "tall trees within right-of-way at conductor height"
@@ -132,8 +133,8 @@
       "finding_id": "f002",
       "class": "vegetation_encroachment",
       "timestamp_seconds": 100.625,
-      "start_seconds": 94.625,
-      "end_seconds": 106.625,
+      "start_seconds": 93.125,
+      "end_seconds": 108.125,
       "severity": "moderate",
       "specific_defects": [
         "tall trees within right-of-way at conductor height"
@@ -148,8 +149,8 @@
       "finding_id": "f005",
       "class": "vegetation_encroachment",
       "timestamp_seconds": 376.0,
-      "start_seconds": 370.0,
-      "end_seconds": 382.0,
+      "start_seconds": 368.5,
+      "end_seconds": 383.5,
       "severity": "moderate",
       "specific_defects": [
         "tall trees within right-of-way at conductor height"
@@ -164,8 +165,8 @@
       "finding_id": "f006",
       "class": "vegetation_encroachment",
       "timestamp_seconds": 404.125,
-      "start_seconds": 398.125,
-      "end_seconds": 410.125,
+      "start_seconds": 396.625,
+      "end_seconds": 411.625,
       "severity": "moderate",
       "specific_defects": [
         "tall trees within right-of-way at conductor height"
@@ -181,8 +182,8 @@
       "finding_id": "f007",
       "class": "vegetation_encroachment",
       "timestamp_seconds": 432.25,
-      "start_seconds": 426.25,
-      "end_seconds": 438.25,
+      "start_seconds": 424.75,
+      "end_seconds": 439.75,
       "severity": "moderate",
       "specific_defects": [
         "tall trees within right-of-way at conductor height"
@@ -198,12 +199,12 @@
       "finding_id": "f008",
       "class": "insulator_damage",
       "timestamp_seconds": 615.125,
-      "start_seconds": 609.125,
-      "end_seconds": 621.125,
+      "start_seconds": 607.625,
+      "end_seconds": 622.625,
       "severity": "critical",
       "specific_defects": [
         "cracks in porcelain disk",
-        "rust streaks on cap-and-pin hardware"
+        "visible burn mark"
       ],
       "matched_queries": [
         "damaged or broken insulator disk on transmission tower",
@@ -215,28 +216,11 @@
       "pegasus_confidence": "high"
     },
     {
-      "finding_id": "f011",
-      "class": "insulator_damage",
-      "timestamp_seconds": 701.875,
-      "start_seconds": 695.875,
-      "end_seconds": 707.875,
-      "severity": "high",
-      "specific_defects": [
-        "rust streaks on cap-and-pin hardware"
-      ],
-      "matched_queries": [
-        "damaged or broken insulator disk on transmission tower",
-        "rust streaks on insulator hardware"
-      ],
-      "marengo_score": 0.17605730891227722,
-      "pegasus_confidence": "medium"
-    },
-    {
       "finding_id": "f014",
       "class": "insulator_damage",
       "timestamp_seconds": 791.625,
-      "start_seconds": 785.625,
-      "end_seconds": 797.625,
+      "start_seconds": 784.125,
+      "end_seconds": 799.125,
       "severity": "critical",
       "specific_defects": [
         "cracked porcelain disk",
@@ -256,7 +240,7 @@
       "start_seconds": 102.0,
       "end_seconds": 103.0,
       "severity": "low",
-      "description": "\"trees close to the right side of distant tower.\"",
+      "description": "trees close to the right side of distant tower.",
       "notes": "needs_human_review"
     },
     {
@@ -265,7 +249,7 @@
       "start_seconds": 155.0,
       "end_seconds": 162.0,
       "severity": "low",
-      "description": "\"tall, dry trees in the surrounding area\"",
+      "description": "tall, dry trees in the surrounding area",
       "notes": "needs_human_review"
     },
     {
@@ -274,7 +258,7 @@
       "start_seconds": 170.0,
       "end_seconds": 194.0,
       "severity": "low",
-      "description": "\"corrosion visible on ends of insulator and tower body\"",
+      "description": "corrosion visible on ends of insulator and tower body",
       "notes": "borderline"
     },
     {
@@ -283,7 +267,7 @@
       "start_seconds": 195.0,
       "end_seconds": 210.0,
       "severity": "moderate",
-      "description": "\"consistent corrosion between disks of two insulator lines in a v-formation, as well\"",
+      "description": "consistent corrosion between disks of two insulator lines in a v-formation, as well",
       "notes": ""
     },
     {
@@ -292,7 +276,7 @@
       "start_seconds": 211.0,
       "end_seconds": 222.0,
       "severity": "low",
-      "description": "\"discoloration streak visible on ceramic disk\"",
+      "description": "discoloration streak visible on ceramic disk",
       "notes": "borderline"
     },
     {
@@ -301,7 +285,7 @@
       "start_seconds": 403.0,
       "end_seconds": 406.0,
       "severity": "moderate",
-      "description": "\"trees close to the right side of a red and white tower. More than half the apparent distance to the height of the conductor.\"",
+      "description": "trees close to the right side of a red and white tower \u2014 more than half the apparent distance to the height of the conductor.",
       "notes": "borderline"
     },
     {
@@ -310,7 +294,7 @@
       "start_seconds": 427.0,
       "end_seconds": 430.0,
       "severity": "high",
-      "description": "\"the base of the tower is being covered by trees up to half the height of the conductor.\"",
+      "description": "the base of the tower is being covered by trees up to half the height of the conductor.",
       "notes": "needs_human_review"
     },
     {
@@ -319,7 +303,7 @@
       "start_seconds": 534.0,
       "end_seconds": 535.0,
       "severity": "low",
-      "description": "\"trees appear close to the base of a tower.\"",
+      "description": "trees appear close to the base of a tower.",
       "notes": "borderline"
     },
     {
@@ -328,7 +312,7 @@
       "start_seconds": 584.0,
       "end_seconds": 589.0,
       "severity": "moderate",
-      "description": "\"tall brush at base of tower\"",
+      "description": "tall brush at base of tower",
       "notes": ""
     },
     {
@@ -337,7 +321,7 @@
       "start_seconds": 591.0,
       "end_seconds": 633.0,
       "severity": "low",
-      "description": "\"copper rust\"",
+      "description": "copper rust",
       "notes": ""
     },
     {
@@ -346,7 +330,7 @@
       "start_seconds": 674.0,
       "end_seconds": 685.0,
       "severity": "low",
-      "description": "\"rust on the ends of the insulators and in-between disks\"",
+      "description": "rust on the ends of the insulators and in-between disks",
       "notes": ""
     },
     {
@@ -355,7 +339,7 @@
       "start_seconds": 700.0,
       "end_seconds": 704.0,
       "severity": "low",
-      "description": "\"rust on the connecting rods between insulators and the tower body\"",
+      "description": "rust on the connecting rods between insulators and the tower body",
       "notes": ""
     },
     {
@@ -364,7 +348,7 @@
       "start_seconds": 733.0,
       "end_seconds": 753.0,
       "severity": "low",
-      "description": "\"white marks on cermaic disks, which could be either bird streaks or physical damage.\"",
+      "description": "white marks on ceramic disks \u2014 could be either bird streaks or physical damage.",
       "notes": "needs_human_review"
     }
   ]

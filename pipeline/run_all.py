@@ -140,7 +140,11 @@ def _run_main(args) -> int:
     s3 = sess.client("s3")
     account = bedrock_client.account_id(sess)
     for c in enriched:
-        cached = cache.get(c["finding_id"])
+        # Cache by rounded timestamp so dedup reshuffling between runs (which
+        # changes finding_id assignments) does not return stale parsed output
+        # for new content. Bucket size of 1s matches Marengo's clip granularity.
+        cache_key = f"t{round(c['timestamp_seconds'], 1)}"
+        cached = cache.get(cache_key)
         if cached and not args.refresh_pegasus:
             parsed = cached["parsed"]
             raw = cached.get("raw", "")
@@ -158,8 +162,9 @@ def _run_main(args) -> int:
                     "pegasus_confidence": "low",
                 }
                 raw = ""
-            cache[c["finding_id"]] = {"parsed": parsed, "raw": raw,
-                                       "timestamp_seconds": c["timestamp_seconds"]}
+            cache[cache_key] = {"parsed": parsed, "raw": raw,
+                                 "timestamp_seconds": c["timestamp_seconds"],
+                                 "finding_id": c["finding_id"]}
             pegasus_cache_path.write_text(json.dumps(cache, indent=2))
             tag = ""
         c["parsed"] = parsed

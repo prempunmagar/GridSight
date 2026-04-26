@@ -480,7 +480,7 @@ These are the things we have not yet decided. Each will be resolved at a defined
 |---|---|
 | Final project name (keep "GridSight" or change?) | Before recording the demo video. |
 | Specific transmission corridor used for generating the demo telemetry file | During data prep (per `08_EXTERNAL_DATA_HANDOFF.md`). Pick a real corridor visible on a public utility map; choose one whose visible environment roughly matches the curated footage so the simulation reads as coherent. The data prep team leads this; project lead approves; St. Louis-area corridors are a nice-to-have if the footage matches. |
-| Voltage class to assume for MVCD severity scoring | Default 230 kV unless curated footage clearly shows EHV (500+ kV, very tall towers, multiple bundled conductors); then bump to 345 kV. Final pick after curation. |
+| Voltage class to assume for MVCD severity scoring | Resolved 2026-04-26: **345 kV** (MVCD = 4.3 ft at sea level). The curated demo footage shows tall lattice steel towers consistent with EHV; 345 kV is also the dominant US transmission voltage class along the simulated southern Illinois corridor. `pipeline/config.py` `DEFAULT_VOLTAGE_CLASS = "345kV"`. |
 | Whether to ship the broad-version queries (full-inventory asset monitoring) | Sunday morning at Decision Gate 3, alongside the Workflow 03 maintenance correlation decision. Adds ~30–60 min of work; substantially strengthens the maintenance correlation story if both ship together. |
 | Whether to attempt the Workflow 03 stretch gesture | Sunday morning per the decision rule in Section 13. |
 

@@ -13,7 +13,7 @@ A single transmission-related failure can cost **$1M–$100M+** in incident resp
 
 ## What GridSight changes
 
-GridSight ingests the two standard outputs of any drone inspection — video and telemetry — and produces a prioritized, georeferenced findings list. Severity is anchored to **NERC FAC-003-4** clearance distances and standard insulator failure modes, so each finding maps to a regulatory or maintenance threshold rather than a generic "anomaly score." The system is voltage-class agnostic; the demo uses **230 kV (MVCD = 4.0 ft)** but the same pipeline applies to 345 kV, 500 kV, or 765 kV with a single configuration change.
+GridSight ingests the two standard outputs of any drone inspection — video and telemetry — and produces a prioritized, georeferenced findings list. Severity is anchored to **NERC FAC-003-4** clearance distances and standard insulator failure modes, so each finding maps to a regulatory or maintenance threshold rather than a generic "anomaly score." The system is voltage-class agnostic; the demo uses **345 kV (MVCD = 4.3 ft)** but the same pipeline applies to 230 kV, 500 kV, or 765 kV with a single configuration change.
 
 | Metric | Current state | With GridSight | Improvement |
 |---|---|---|---|
@@ -83,4 +83,4 @@ GridSight is not a replacement for human judgment — it is a triage layer. Insp
 
 ---
 
-*NERC FAC-003-4 MVCD reference: 4.0 ft for 230 kV at sea level – 500 ft altitude (the canonical demo configuration). Per-incident cost range, current-state throughput, and flight-cost numbers from the Geospatial Video Intelligence Hackathon Track 02 challenge brief. Workflow 03 multi-source correlation extension was not shipped per the decision rule in `01_MASTER.md` §13.*
+*NERC FAC-003-4 MVCD reference: 4.3 ft for 345 kV at sea level – 500 ft altitude (the canonical demo configuration). Per-incident cost range, current-state throughput, and flight-cost numbers from the Geospatial Video Intelligence Hackathon Track 02 challenge brief. Workflow 03 multi-source correlation extension was not shipped per the decision rule in `01_MASTER.md` §13.*

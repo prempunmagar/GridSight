@@ -54,7 +54,7 @@ A class-mismatched pair contributes to **both** FP and FN — this single pass p
 
 ### 1.3 Exclusions
 
-- Predictions with `severity == "no_action"` are dropped before matching. These are intact-asset findings; counting them as positive predictions would inflate FP without justification. Of 14 total findings in the canonical run, 4 (`f003`, `f004`, `f010`, `f012`) were excluded under this rule, leaving **10 predictions used** for matching.
+- Predictions with `severity == "no_action"` are dropped before matching. These are intact-asset findings; counting them as positive predictions would inflate FP without justification. Of 14 total findings in the canonical run, 5 (`f003`, `f004`, `f010`, `f011`, `f012`) were excluded under this rule, leaving **9 predictions used** for matching.
 - Ground truth rows with `class == "other"` are dropped. Per [`08_EXTERNAL_DATA_HANDOFF.md`](08_EXTERNAL_DATA_HANDOFF.md): *"Doesn't affect F1; the pipeline excludes `other` from metric calculation."* Zero rows qualified for this exclusion in the canonical run.
 
 ### 1.4 Why no true negatives
@@ -79,9 +79,9 @@ Pre-run targets per [`01_MASTER.md`](01_MASTER.md) §10.2:
 
 | Metric | Target | Measured (overall) | Measured vs target |
 |---|---|---|---|
-| Precision per class | ≥ 0.6 | 0.25 / 0.17 | **Below** |
+| Precision per class | ≥ 0.6 | 0.33 / 0.17 | **Below** |
 | Recall per class | ≥ 0.5 | 0.13 / 0.14 | **Below** |
-| F1 per class | ≥ 0.55 | 0.17 / 0.15 | **Below** |
+| F1 per class | ≥ 0.55 | 0.18 / 0.15 | **Below** |
 | Localization (timestamp) | ±5 sec of true midpoint | within ±2 sec where matched | At target |
 
 Per the brief, perfect classification is not the goal. The team optimizes for **honest reporting of measured performance** over hitting specific numbers; Section 8 walks through why measured F1 is below target on this 15-anomaly cut.
@@ -105,7 +105,7 @@ The validation set lives in `data/validation/ground_truth.csv`. It is a manually
 | Borderline-flagged | 5 (rows 3, 5, 6, 8, plus borderline-tagged 11) |
 | `needs_human_review`-flagged | 4 (rows 1, 2, 7, 14) |
 | Source video duration | 13:32 (812.99 s) |
-| Voltage class assumption | 230 kV (MVCD = 4.0 ft) |
+| Voltage class assumption | 345 kV (MVCD = 4.3 ft) |
 
 ### 2.3 Severity distribution in ground truth
 
@@ -133,13 +133,13 @@ All numbers below are read directly from `out/validation_metrics.json`.
 | Metric | Value |
 |---|---:|
 | Ground truth anomalies | 8 |
-| Automated findings (used) | 4 |
+| Automated findings (used) | 3 |
 | True positives | 1 |
-| False positives | 3 |
+| False positives | 2 |
 | False negatives | 7 |
-| **Precision** | **0.25** |
+| **Precision** | **0.333** |
 | **Recall** | **0.125** |
-| **F1** | **0.167** |
+| **F1** | **0.182** |
 
 ### 3.2 Vegetation encroachment (Class B)
 
@@ -159,13 +159,13 @@ All numbers below are read directly from `out/validation_metrics.json`.
 | Metric | Value |
 |---|---:|
 | Total ground truth | 15 |
-| Total automated findings used | 10 |
+| Total automated findings used | 9 |
 | True positives | 2 |
-| False positives | 8 |
+| False positives | 7 |
 | False negatives | 13 |
-| **Aggregate Precision** | **0.20** |
+| **Aggregate Precision** | **0.222** |
 | **Aggregate Recall** | **0.133** |
-| **Aggregate F1** | **0.16** |
+| **Aggregate F1** | **0.167** |
 
 ### 3.4 Confusion matrix
 
@@ -175,7 +175,7 @@ Rows = actual class, columns = predicted class. `none` row counts predictions wi
 |---|---:|---:|---:|
 | **Insulator damage** | 1 | 0 | 7 |
 | **Vegetation encroachment** | 0 | 1 | 6 |
-| **None (FP origin)** | 3 | 5 | — |
+| **None (FP origin)** | 2 | 5 | — |
 
 Class confusion across the matched pairs is zero — the system never assigns the wrong class to a paired finding. All errors are misses (column `none`) or spurious detections (row `none`), not class swaps.
 
@@ -193,6 +193,8 @@ Class confusion across the matched pairs is zero — the system never assigns th
 | Low | 0 | 0 | 0 | 0 |
 | No-action (intact) | 5 | 0 | 0 | 5 |
 | **Total** | **8** | **6** | **0** | **14** |
+
+(Pegasus runs are not deterministic across calls; the latest canonical run produced 5 no-action findings — `f003`, `f004`, `f010`, `f011`, `f012` — with `f011` flipping from "rust streaks" in an earlier run to "intact" in this run. Prior reports of 4 no-action vs 5 reflect the same predictive surface, not a behavioral change.)
 
 The system surfaces all four actionable tiers and keeps intact findings visible per Decision D9 (asset-centric model). The dashboard defaults to `severity != no_action` with a "Show intact assets" toggle so judges can see the full output.
 
@@ -221,34 +223,33 @@ The rubric calls out false positive analysis as a deliverable. This section walk
 
 ### 5.2 Per-FP attribution
 
-All 8 FPs from `out/validation_metrics.json`:
+All 7 FPs from `out/validation_metrics.json`:
 
 | # | finding_id | t (s) | class | severity | Marengo | Pegasus | Attributed cause |
 |---|---|---:|---|---|---:|---|---|
 | 1 | f001 | 89.4 | vegetation | moderate | 0.16 | medium | Background vegetation — distant tree-line read as conductor-height by Pegasus |
-| 2 | f002 | 100.6 | vegetation | moderate | 0.14 | medium | IoU near-miss — overlaps GT row 1 (102–103 s, severity `low`) but 1-second GT window means max possible IoU = 1/12 = 0.08, below threshold |
+| 2 | f002 | 100.6 | vegetation | moderate | 0.14 | medium | IoU near-miss — overlaps GT row 1 (102–103 s, severity `low`) but 1-second GT window means max possible IoU = 1/15 = 0.07, below threshold |
 | 3 | f005 | 376.0 | vegetation | moderate | 0.14 | medium | Background vegetation — no GT anomaly in this region |
-| 4 | f006 | 404.1 | vegetation | moderate | 0.17 | medium | IoU near-miss — overlaps GT row 6 (403–406 s, `borderline`) but 3-second GT means max IoU = 3/12 = 0.25 |
-| 5 | f007 | 432.2 | vegetation | moderate | 0.16 | medium | IoU near-miss — overlaps GT row 7 (427–430 s, severity `high`, `needs_human_review`) but 3-second GT means max IoU = 3/12 = 0.25 |
-| 6 | f008 | 615.1 | insulator | **critical** | 0.20 | high | IoU near-miss — overlaps GT row 10 (591–633 s, `copper rust`, severity `low`) and class agrees, but the 12-second prediction inside a 42-second GT gives IoU = 12/42 = 0.29 |
-| 7 | f011 | 701.9 | insulator | high | 0.18 | medium | IoU near-miss — overlaps GT row 13 (700–704 s, severity `low`) at IoU = 4/12 = 0.33 |
-| 8 | f014 | 791.6 | insulator | **critical** | 0.16 | high | Visually similar healthy component or genuine extra-corpus anomaly — t=791.6 s falls outside the labeled GT range (max GT end = 774 s), so by definition cannot match |
+| 4 | f006 | 404.1 | vegetation | moderate | 0.17 | medium | IoU near-miss — overlaps GT row 6 (403–406 s, `borderline`) but 3-second GT means max IoU = 3/15 = 0.20 |
+| 5 | f007 | 432.2 | vegetation | moderate | 0.16 | medium | IoU near-miss — overlaps GT row 7 (427–430 s, severity `high`, `needs_human_review`) but 3-second GT means max IoU = 3/15 = 0.20 |
+| 6 | f008 | 615.1 | insulator | **critical** | 0.20 | high | IoU near-miss — overlaps GT row 10 (591–633 s, `copper rust`, severity `low`) and class agrees, but the 15-second prediction inside a 42-second GT gives IoU = 15/42 = 0.36 |
+| 7 | f014 | 791.6 | insulator | **critical** | 0.16 | high | Visually similar healthy component or genuine extra-corpus anomaly — t=791.6 s falls outside the labeled GT range (max GT end = 774 s), so by definition cannot match |
 
 ### 5.3 Cause distribution
 
 | Cause | Count | % of FPs |
 |---|---:|---:|
-| IoU near-miss (real anomaly, threshold-failed) | 5 | 62.5% |
-| Background vegetation | 2 | 25.0% |
-| Visually similar healthy component / out-of-corpus | 1 | 12.5% |
+| IoU near-miss (real anomaly, threshold-failed) | 4 | 57.1% |
+| Background vegetation | 2 | 28.6% |
+| Visually similar healthy component / out-of-corpus | 1 | 14.3% |
 
 ### 5.4 Patterns and proposed mitigations
 
-**Pattern: IoU 0.5 threshold dominates the FP count.** 5 of 8 FPs (62.5%) are predictions that visually correctly identified a real ground-truth anomaly but whose 12-second clip window did not overlap the narrow ground-truth window by 50%. The 4-second-or-less GT windows used for `low`-severity entries (rows 1, 6, 7, 13) cap the maximum achievable IoU at 0.33 against a 12-second prediction — the IoU rule mathematically cannot match these. **Mitigation:** report metrics at IoU ≥ 0.3 alongside ≥ 0.5 (`python -m pipeline.validate --threshold 0.3`), or relax the prediction window to 6 seconds where Marengo's confidence peak is sharp. Loosening to IoU ≥ 0.3 would convert 4 FPs (f006, f007, f008, f011) to TPs — recomputing yields **Class A precision 0.50 / recall 0.375 / F1 0.43** and **Class B precision 0.43 / recall 0.43 / F1 0.43**, both above target. The strict 0.5 threshold is methodologically defensible but reads more harshly than the system's actual visual performance.
+**Pattern: IoU 0.5 threshold dominates the FP count.** 4 of 7 FPs (57.1%) are predictions that visually correctly identified a real ground-truth anomaly but whose 15-second clip window did not overlap the narrow ground-truth window by 50%. The ≤4-second GT windows used for `low`-severity entries (rows 1, 6, 7, 13) cap the maximum achievable IoU at 0.27 against a 15-second prediction — the IoU rule mathematically cannot match these. **Mitigation:** report metrics at IoU ≥ 0.3 alongside ≥ 0.5 (`python -m pipeline.validate --threshold 0.3`). At IoU ≥ 0.3, **Class A precision rises to 0.667 / recall 0.25 / F1 0.36** (one additional FP becomes a TP), with Class B unchanged. Aggregate F1 lifts from 0.167 to 0.25. The strict 0.5 threshold is methodologically defensible but reads more harshly than the system's actual visual performance.
 
-**Pattern: vegetation queries surface tall trees within the right-of-way regardless of true conductor distance.** 2 of 8 FPs (f001, f005) are background vegetation. Pegasus's drone-altitude visual estimate cannot reliably distinguish "tall trees within ROW at conductor height" from "tall trees behind tower from camera perspective". **Mitigation (production):** integrate a depth-mapping or LiDAR augmentation; **mitigation (current architecture):** tune the Pegasus prompt to explicitly ask whether the trees are between camera and tower or behind it.
+**Pattern: vegetation queries surface tall trees within the right-of-way regardless of true conductor distance.** 2 of 7 FPs (f001, f005) are background vegetation. Pegasus's drone-altitude visual estimate cannot reliably distinguish "tall trees within ROW at conductor height" from "tall trees behind tower from camera perspective". **Mitigation (production):** integrate a depth-mapping or LiDAR augmentation; **mitigation (current architecture):** tune the Pegasus prompt to explicitly ask whether the trees are between camera and tower or behind it.
 
-**Pattern: f014 outside labeled corpus.** 1 of 8 FPs is a critical-severity insulator detection (cracked porcelain + visible burn mark) at t=791.6 s, after the GT labeling cutoff (max GT end = 774 s). This may be a real anomaly the labeler did not annotate, or an extra-corpus FP — the validation set cannot adjudicate. Manual review recommended.
+**Pattern: f014 outside labeled corpus.** 1 of 7 FPs is a critical-severity insulator detection (cracked porcelain + visible burn mark) at t=791.6 s, after the GT labeling cutoff (max GT end = 774 s). This may be a real anomaly the labeler did not annotate, or an extra-corpus FP — the validation set cannot adjudicate. Manual review recommended.
 
 ---
 
@@ -280,22 +281,22 @@ All 13 FNs from `out/validation_metrics.json`:
 | 9 | 9 | 584–589 | vegetation | moderate | — | tall brush at base of tower | Out-of-distribution subtype |
 | 10 | 10 | 591–633 | insulator | low | — | copper rust | IoU near-miss vs f008 |
 | 11 | 12 | 674–685 | insulator | low | — | rust on insulator ends and between disks | Conservative Pegasus assessment (f010 at t=683 called intact) |
-| 12 | 13 | 700–704 | insulator | low | — | rust on connecting rods | IoU near-miss vs f011 |
+| 12 | 13 | 700–704 | insulator | low | — | rust on connecting rods | Conservative Pegasus assessment (f011 at t=701.9 called intact in canonical run) |
 | 13 | 14 | 733–753 | insulator | low | needs_review | white marks on ceramic disks | Conservative Pegasus assessment (f012 at t=741 called intact) |
 
 ### 6.3 Cause distribution
 
 | Cause | Count | % of FNs |
 |---|---:|---:|
-| IoU near-miss | 6 | 46.2% |
-| Conservative Pegasus assessment | 4 | 30.8% |
+| IoU near-miss | 5 | 38.5% |
+| Conservative Pegasus assessment | 5 | 38.5% |
 | Out-of-distribution subtype | 3 | 23.1% |
 
 ### 6.4 Patterns and proposed mitigations
 
-**Pattern: IoU near-misses again dominate.** 6 of 13 FNs (46.2%) overlap a real prediction but fail IoU 0.5. Same mitigation as Section 5.4 — relaxing to IoU ≥ 0.3 converts these to TPs.
+**Pattern: IoU near-misses again dominate.** 5 of 13 FNs (38.5%) overlap a real prediction but fail IoU 0.5. Same mitigation as Section 5.4 — relaxing to IoU ≥ 0.3 converts one of these to a TP.
 
-**Pattern: low-severity subtle corrosion called intact by Pegasus.** 4 of 13 FNs are real corrosion / rust / discoloration the labeler tagged as `low` severity, but Pegasus called the asset `intact` (no defect surfaced). The Pegasus prompt was tuned mid-build to explicitly call low-grade rust/corrosion `damaged`, which surfaced f008 (cracks + rust streaks) and f013 (rust streaks) — but did not catch every instance. **Mitigation:** add additional Pegasus examples for "very light copper-color staining" and "thin discoloration streaks" to the prompt; or accept that visual depth at drone altitude makes some `low`-severity calls genuinely below the model's discrimination threshold (the brief itself says perfect classification is not the goal).
+**Pattern: low-severity subtle corrosion called intact by Pegasus.** 5 of 13 FNs are real corrosion / rust / discoloration the labeler tagged as `low` severity, but Pegasus called the asset `intact` (no defect surfaced). The Pegasus prompt was tuned mid-build to explicitly call low-grade rust/corrosion `damaged`, which surfaced f008 (cracks + rust streaks) and f013 (rust streaks) — but did not catch every instance. **Mitigation:** add additional Pegasus examples for "very light copper-color staining" and "thin discoloration streaks" to the prompt; or accept that visual depth at drone altitude makes some `low`-severity calls genuinely below the model's discrimination threshold (the brief itself says perfect classification is not the goal).
 
 **Pattern: 3 ground truths had no Marengo candidate within ±5 seconds.** GT rows 2 (155–162 s, dry trees), 8 (534 s, trees close to tower base), and 9 (584–589 s, tall brush) had no automated finding nearby. The active query set may not phrase these well — "dry trees in surrounding area" doesn't match any of our 7 anomaly queries semantically. **Mitigation:** add 1–2 broader queries like "dense brush near transmission tower" or "dry vegetation along right-of-way" to surface this subset.
 
@@ -315,8 +316,8 @@ Two pairs only — severity calibration is necessarily small-N for this validati
 
 | Pair | finding_id | gt_id | IoU | Class | GT severity | Auto severity | Match |
 |---|---|---:|---:|---|---|---|:---:|
-| 1 | f009 | 11 | 0.667 | vegetation | moderate | moderate | ✓ |
-| 2 | f013 | 15 | 0.571 | insulator | moderate | high | ✗ (one tier above) |
+| 1 | f013 | 15 | 0.714 | insulator | moderate | high | ✗ (one tier above) |
+| 2 | f009 | 11 | 0.533 | vegetation | moderate | moderate | ✓ |
 
 | Metric | Value |
 |---:|---|
@@ -361,7 +362,7 @@ GridSight is scoped to:
 - **Small validation set.** 15 total labels (8 Class A + 7 Class B). Per-class metrics are noisy — a single missed detection in Class B (with 7 ground truth anomalies) shifts recall by ~14 percentage points. Confidence intervals on the reported metrics are wide. A 50–100 anomaly validation set would tighten the numbers materially.
 - **No held-out test set.** The same 13:32 of footage drove both query iteration and metric reporting. Queries were not deliberately tuned against the validation labels, but the team did read the labels while iterating, so a small amount of implicit fitting cannot be ruled out.
 - **GPS error not measured against ground truth.** YouTube strips telemetry, so GPS error cannot be quantified against a true reference. Localization is verified only against the simulated corridor, which is by definition exact.
-- **IoU 0.5 threshold disadvantages narrow GT windows.** As Sections 5.4 and 6.4 detail, 6 of 13 FNs and 5 of 8 FPs are IoU near-misses (the prediction visually identifies the right anomaly but fails the threshold). At IoU ≥ 0.3 the system's measured F1 jumps from 0.16 to ≈ 0.43 — methodologically defensible to report both but the 0.5 number reads more harshly than the system's actual visual performance.
+- **IoU 0.5 threshold disadvantages narrow GT windows.** As Sections 5.4 and 6.4 detail, 5 of 13 FNs and 4 of 7 FPs are IoU near-misses (the prediction visually identifies the right anomaly but fails the threshold). At IoU ≥ 0.3 the system's measured F1 lifts from 0.167 to 0.25 (Class A: 0.182 → 0.36) — methodologically defensible to report both but the 0.5 number reads more harshly than the system's actual visual performance.
 
 ### 8.4 Methodological limitations
 
@@ -395,9 +396,9 @@ The `out/validation_metrics.json` schema includes every field rendered in this r
 
 ## 10. Conclusion
 
-**What the validation set establishes.** GridSight produces structured, georeferenced findings against a manually-labeled ground truth. On the canonical 13:32 cut with 15 labeled anomalies (8 Class A, 7 Class B), measured F1 at the rubric-cited IoU 0.5 threshold is **0.16 overall** (Class A 0.17, Class B 0.15) — below the team's pre-run targets of ≥ 0.55. Severity calibration on the two matched pairs is 50% exact and 100% within-one-tier. Class confusion is zero — the system never assigns the wrong class to a paired finding.
+**What the validation set establishes.** GridSight produces structured, georeferenced findings against a manually-labeled ground truth. On the canonical 13:32 cut with 15 labeled anomalies (8 Class A, 7 Class B), measured F1 at the rubric-cited IoU 0.5 threshold is **0.167 overall** (Class A 0.182, Class B 0.154) — below the team's pre-run targets of ≥ 0.55. Severity calibration on the two matched pairs is 50% exact and 100% within-one-tier. Class confusion is zero — the system never assigns the wrong class to a paired finding.
 
-The dominant failure mode is the **IoU 0.5 threshold colliding with narrow ground-truth windows**: 11 of 21 total errors (5 FPs + 6 FNs) are predictions that visually identified the right anomaly but did not overlap the GT range by 50% of the union. At IoU ≥ 0.3 the same predictions would yield approximately F1 0.43 across both classes — above target. We report the 0.5 number for methodological consistency with the rubric's wording while noting this sensitivity.
+The dominant failure mode is the **IoU 0.5 threshold colliding with narrow ground-truth windows**: 9 of 20 total errors (4 FPs + 5 FNs) are predictions that visually identified the right anomaly but did not overlap the GT range by 50% of the union. At IoU ≥ 0.3 the same data yields F1 0.25 overall (Class A 0.36) — closer to target. We report the 0.5 number for methodological consistency with the rubric's wording while noting this sensitivity.
 
 **What the validation set does not establish.** With 15 single-labeler anomalies on 13:32 of footage, the per-class F1 is two-significant-figure precision; a single re-labeling shifts it noticeably. No held-out test set means we cannot rule out implicit query fitting. GPS error against true field locations cannot be measured because the source footage's original telemetry is unknown. With more time the team would prioritize: a 50–100 anomaly multi-labeler validation set, a held-out test fold, and integration of LiDAR or photogrammetry for vegetation distance estimation that is currently a visual-only Pegasus call (the largest source of borderline FP risk).
 

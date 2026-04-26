@@ -35,12 +35,12 @@ def test_two_far_apart_candidates_stay_separate():
 
 
 def test_two_close_candidates_merge_into_one():
-    """Within DEDUP_WINDOW_SECONDS (30s by default), two candidates become one."""
-    result = deduplicate([_cand(100.0, score=0.4), _cand(120.0, score=0.7)])
+    """Within DEDUP_WINDOW_SECONDS (10s by default), two candidates become one."""
+    result = deduplicate([_cand(100.0, score=0.4), _cand(108.0, score=0.7)])
     assert len(result) == 1
     # Best score wins the timestamp
     assert result[0]["marengo_score"] == 0.7
-    assert result[0]["timestamp_seconds"] == 120.0
+    assert result[0]["timestamp_seconds"] == 108.0
 
 
 def test_highest_score_wins_within_cluster():
