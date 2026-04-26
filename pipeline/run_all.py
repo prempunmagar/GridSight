@@ -108,7 +108,13 @@ def _run_main(args) -> int:
     print(f"\n[Stage 3] Detecting candidates ({len(queries.active_queries(args.include_inventory))} queries)")
     active = queries.active_queries(args.include_inventory)
     text_cache_path = config.OUT_DIR / "marengo_text_embeddings.json"
-    candidates = marengo_detect.detect(clip_embeddings, active, cache_path=text_cache_path)
+
+    def _detect_progress(i: int, total: int, query: str) -> None:
+        status.write("running", stage="marengo-detect", detail=f"query {i}/{total}")
+
+    candidates = marengo_detect.detect(clip_embeddings, active,
+                                       cache_path=text_cache_path,
+                                       on_progress=_detect_progress)
     print(f"  raw candidates: {len(candidates)}")
 
     deduped = marengo_detect.deduplicate(candidates)
@@ -117,13 +123,14 @@ def _run_main(args) -> int:
         deduped = sorted(deduped, key=lambda c: c["marengo_score"], reverse=True)[:args.max_candidates]
         print(f"  capped to top {args.max_candidates} by marengo_score")
 
-    status.write("running", stage="extract-clips")
+    status.write("running", stage="extract-clips", detail=f"0/{len(deduped)} clips")
     print("\n[Stage 4] Extracting evidence clips")
     config.CLIPS_WORKING_DIR.mkdir(parents=True, exist_ok=True)
     deduped.sort(key=lambda c: c["timestamp_seconds"])
     enriched: list[dict] = []
     for i, c in enumerate(deduped, start=1):
         finding_id = f"f{i:03d}"
+        status.write("running", stage="extract-clips", detail=f"{i}/{len(deduped)} clips")
         clip_path = extract_clips.extract_clip(
             video_path, c["timestamp_seconds"], finding_id, config.CLIPS_WORKING_DIR
         )
@@ -132,14 +139,16 @@ def _run_main(args) -> int:
         enriched.append(c)
         print(f"  {finding_id}: t={c['timestamp_seconds']:6.1f}s  score={c['marengo_score']:.3f}")
 
-    status.write("running", stage="pegasus")
+    status.write("running", stage="pegasus", detail=f"0/{len(enriched)} clips")
     print("\n[Stage 5] Describing clips with Pegasus (sync)")
     pegasus_cache_path = config.OUT_DIR / "pegasus_responses.json"
     cache = json.loads(pegasus_cache_path.read_text()) if pegasus_cache_path.exists() else {}
     sess = bedrock_client.session()
     s3 = sess.client("s3")
     account = bedrock_client.account_id(sess)
-    for c in enriched:
+    for idx, c in enumerate(enriched, start=1):
+        status.write("running", stage="pegasus", detail=f"{idx}/{len(enriched)} clips")
+        _ = idx  # used for status; keep loop body otherwise unchanged
         # Cache by rounded timestamp so dedup reshuffling between runs (which
         # changes finding_id assignments) does not return stale parsed output
         # for new content. Bucket size of 1s matches Marengo's clip granularity.

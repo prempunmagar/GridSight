@@ -87,7 +87,7 @@ export default function Page() {
     );
   }
 
-  const bannerHeight = status.state === "running" ? 36 : 0;
+  const bannerHeight = status.state === "running" ? 76 : status.state === "error" ? 36 : 0;
   const reservedHeight = 64 /* header */ + bannerHeight + 56 /* timeline */ + 24 /* timeline gap */ + OUTER_PADDING_TOP + 24;
 
   return (

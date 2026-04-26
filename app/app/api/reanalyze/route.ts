@@ -31,6 +31,7 @@ export async function POST() {
     cwd: repoRoot,
     detached: true,
     stdio: "ignore",
+    windowsHide: true,
     env: { ...process.env, PYTHONPATH: repoRoot },
   });
   proc.unref();

@@ -69,10 +69,12 @@ def score_clips(query_vec: list[float], clip_embeddings: list[dict]) -> list[dic
 
 def detect(clip_embeddings: list[dict], queries: list[tuple[str, str]],
            top_k: int = TOP_K_PER_QUERY,
-           cache_path: "Path | None" = None) -> list[dict]:
+           cache_path: "Path | None" = None,
+           on_progress: "callable | None" = None) -> list[dict]:
     """For each query, return top_k candidates as {timestamp, query, score, source}.
 
-    Text embeddings are cached on disk by the SHA-1 of the query string.
+    Text embeddings are cached on disk; `on_progress(i, total, query)` is called
+    before each query is embedded so the caller can surface progress.
     """
     sess = bedrock_client.session()
     bedrock_runtime = sess.client("bedrock-runtime")
@@ -83,7 +85,9 @@ def detect(clip_embeddings: list[dict], queries: list[tuple[str, str]],
         cache = json.loads(cache_path.read_text())
 
     candidates: list[dict] = []
-    for source, query in queries:
+    for i, (source, query) in enumerate(queries, start=1):
+        if on_progress:
+            on_progress(i, len(queries), query)
         if query in cache:
             print(f"  embedding query (cached): {query!r}")
             vec = cache[query]
