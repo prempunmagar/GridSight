@@ -23,6 +23,15 @@ data/curated/
 # Pipeline working directories (out/ is tracked, see Section 1)
 data/clips_working/
 
+# Pipeline working artifacts inside out/ (out/findings.* and validation_metrics.json are tracked)
+out/run_log.txt
+out/marengo_clip_embeddings.json
+out/marengo_text_embeddings.json
+out/pegasus_responses.json
+
+# Smoke-test artifact (regenerated on each run via ffmpeg)
+examples/test_video.mp4
+
 # OS
 .DS_Store
 Thumbs.db
