@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ExternalLink, FileText, Flag, X } from "lucide-react";
+import { Check, FileText, Flag, Printer, X } from "lucide-react";
 
 import type { Finding } from "@/types/findings";
 import { SEVERITY_HEX, SEVERITY_LABEL, confidencePercent } from "@/lib/severity";
@@ -13,6 +13,10 @@ import ConfRow from "./ConfRow";
 interface Props {
   finding: Finding | null;
   voltageClass: string;
+  isReviewed: boolean;
+  isFlagged: boolean;
+  onToggleReviewed: () => void;
+  onToggleFlagged: () => void;
   onClose: () => void;
 }
 
@@ -45,7 +49,15 @@ const REASONING: Record<string, { word: string; bodyByClass: (klass: string) => 
   },
 };
 
-export default function DetailPanel({ finding, voltageClass, onClose }: Props) {
+export default function DetailPanel({
+  finding,
+  voltageClass,
+  isReviewed,
+  isFlagged,
+  onToggleReviewed,
+  onToggleFlagged,
+  onClose,
+}: Props) {
   if (!finding) return null;
 
   const sevColor = SEVERITY_HEX[finding.severity];
@@ -85,6 +97,16 @@ export default function DetailPanel({ finding, voltageClass, onClose }: Props) {
         <span className="h-6 inline-flex items-center px-2 rounded-full text-[11px] text-ink-secondary bg-surface-subtle border border-border">
           {classLabel}
         </span>
+        {isReviewed && (
+          <span className="h-6 inline-flex items-center gap-1 px-2 rounded-full text-[10px] font-semibold tracking-[0.05em] uppercase bg-sev-intact/10 text-sev-intact border border-sev-intact/30">
+            <Check size={11} /> Reviewed
+          </span>
+        )}
+        {isFlagged && (
+          <span className="h-6 inline-flex items-center gap-1 px-2 rounded-full text-[10px] font-semibold tracking-[0.05em] uppercase bg-sev-high/10 text-sev-high border border-sev-high/30">
+            <Flag size={11} /> Flagged
+          </span>
+        )}
         <div className="flex-1" />
         <button
           type="button"
@@ -179,21 +201,35 @@ export default function DetailPanel({ finding, voltageClass, onClose }: Props) {
           onClick={() => window.print()}
           className="h-9 inline-flex items-center justify-center gap-2 rounded-md bg-slate-900 text-white text-[12px] font-medium hover:bg-black transition-colors"
         >
-          <ExternalLink size={13} />
-          Generate work order
+          <Printer size={13} />
+          Print this finding
         </button>
         <div className="flex gap-2">
           <button
             type="button"
-            className="flex-1 h-9 inline-flex items-center justify-center gap-1.5 rounded-md border border-border bg-surface-panel text-[12px] font-medium text-ink-primary hover:bg-surface-subtle"
+            onClick={onToggleReviewed}
+            aria-pressed={isReviewed}
+            className={
+              "flex-1 h-9 inline-flex items-center justify-center gap-1.5 rounded-md border text-[12px] font-medium transition-colors " +
+              (isReviewed
+                ? "border-sev-intact bg-sev-intact/10 text-sev-intact"
+                : "border-border bg-surface-panel text-ink-primary hover:bg-surface-subtle")
+            }
           >
-            <Check size={13} /> Mark reviewed
+            <Check size={13} /> {isReviewed ? "Reviewed" : "Mark reviewed"}
           </button>
           <button
             type="button"
-            className="flex-1 h-9 inline-flex items-center justify-center gap-1.5 rounded-md border border-border bg-surface-panel text-[12px] font-medium text-ink-primary hover:bg-surface-subtle"
+            onClick={onToggleFlagged}
+            aria-pressed={isFlagged}
+            className={
+              "flex-1 h-9 inline-flex items-center justify-center gap-1.5 rounded-md border text-[12px] font-medium transition-colors " +
+              (isFlagged
+                ? "border-sev-high bg-sev-high/10 text-sev-high"
+                : "border-border bg-surface-panel text-ink-primary hover:bg-surface-subtle")
+            }
           >
-            <Flag size={13} /> Flag for re-inspection
+            <Flag size={13} /> {isFlagged ? "Flagged" : "Flag for re-inspection"}
           </button>
         </div>
       </div>

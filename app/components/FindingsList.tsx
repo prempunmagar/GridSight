@@ -12,6 +12,8 @@ interface Props {
   findings: Finding[];
   selectedId: string | null;
   voltageClass: string;
+  reviewedIds: Set<string>;
+  flaggedIds: Set<string>;
   onSelect: (id: string) => void;
   filters: Set<FilterValue>;
   setFilters: (next: Set<FilterValue>) => void;
@@ -25,6 +27,8 @@ export default function FindingsList({
   findings,
   selectedId,
   voltageClass,
+  reviewedIds,
+  flaggedIds,
   onSelect,
   filters,
   setFilters,
@@ -130,6 +134,8 @@ export default function FindingsList({
             finding={f}
             selected={f.finding_id === selectedId}
             voltageClass={voltageClass}
+            isReviewed={reviewedIds.has(f.finding_id)}
+            isFlagged={flaggedIds.has(f.finding_id)}
             onSelect={() => onSelect(f.finding_id)}
           />
         ))}

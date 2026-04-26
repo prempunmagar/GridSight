@@ -39,8 +39,17 @@ export default function Page() {
   const [filters, setFilters] = useState<Set<FilterValue>>(new Set<FilterValue>(["all"]));
   const [sort, setSort] = useState<SortKey>("severity");
   const [showIntact, setShowIntact] = useState(false);
+  const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
+  const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
 
   const status = useRunStatus(2000);
+
+  function toggleInSet(setter: (next: Set<string>) => void, current: Set<string>, id: string) {
+    const next = new Set(current);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setter(next);
+  }
 
   useEffect(() => {
     Promise.all([loadFindings(), loadFlightPath(), loadMetadata()])
@@ -102,6 +111,8 @@ export default function Page() {
             findings={findings}
             selectedId={selectedId}
             voltageClass={meta.voltage_class}
+            reviewedIds={reviewedIds}
+            flaggedIds={flaggedIds}
             onSelect={setSelectedId}
             filters={filters}
             setFilters={setFilters}
@@ -123,6 +134,10 @@ export default function Page() {
             <DetailPanel
               finding={selected}
               voltageClass={meta.voltage_class}
+              isReviewed={reviewedIds.has(selected.finding_id)}
+              isFlagged={flaggedIds.has(selected.finding_id)}
+              onToggleReviewed={() => toggleInSet(setReviewedIds, reviewedIds, selected.finding_id)}
+              onToggleFlagged={() => toggleInSet(setFlaggedIds, flaggedIds, selected.finding_id)}
               onClose={() => setSelectedId(null)}
             />
           )}

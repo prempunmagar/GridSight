@@ -1,5 +1,7 @@
 "use client";
 
+import { Check, Flag } from "lucide-react";
+
 import type { Finding } from "@/types/findings";
 import { SEVERITY_HEX, SEVERITY_LABEL } from "@/lib/severity";
 import { findingTitle, formatLatLon, formatTimestamp } from "@/lib/format";
@@ -9,10 +11,19 @@ interface Props {
   finding: Finding;
   selected: boolean;
   voltageClass: string;
+  isReviewed: boolean;
+  isFlagged: boolean;
   onSelect: () => void;
 }
 
-export default function FindingCard({ finding, selected, voltageClass, onSelect }: Props) {
+export default function FindingCard({
+  finding,
+  selected,
+  voltageClass,
+  isReviewed,
+  isFlagged,
+  onSelect,
+}: Props) {
   const color = SEVERITY_HEX[finding.severity];
   const title = findingTitle(finding.specific_defects, finding.component_type, finding.condition);
   const towerLine = finding.component_type.replace("_", " ");
@@ -32,11 +43,29 @@ export default function FindingCard({ finding, selected, voltageClass, onSelect 
         style={{ background: color }}
       />
       <div className="pl-3.5 pr-3 py-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <span className="text-[10px] font-semibold tracking-[0.1em] uppercase" style={{ color }}>
             {SEVERITY_LABEL[finding.severity]}
           </span>
-          <span className="font-mono text-[10px] text-ink-tertiary">{finding.finding_id}</span>
+          <span className="inline-flex items-center gap-1.5">
+            {isFlagged && (
+              <span
+                title="Flagged for re-inspection"
+                className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-sev-high/15 text-sev-high"
+              >
+                <Flag size={9} strokeWidth={2.5} />
+              </span>
+            )}
+            {isReviewed && (
+              <span
+                title="Marked reviewed"
+                className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-sev-intact/15 text-sev-intact"
+              >
+                <Check size={10} strokeWidth={2.75} />
+              </span>
+            )}
+            <span className="font-mono text-[10px] text-ink-tertiary">{finding.finding_id}</span>
+          </span>
         </div>
 
         <div className="mt-1 text-[14px] font-medium text-ink-primary leading-snug line-clamp-2">
