@@ -65,7 +65,7 @@ DEFAULT_PARSED = {
     "condition": "unclear",
     "specific_defects": [],
     "vegetation_distance_estimate_ft": None,
-    "confidence": "low",
+    "pegasus_confidence": "low",
 }
 
 
@@ -86,7 +86,19 @@ def _extract_json(text: str) -> dict | None:
 
 
 def _normalize(parsed: dict) -> dict:
-    out = {**DEFAULT_PARSED, **{k: v for k, v in parsed.items() if v is not None or k == "vegetation_distance_estimate_ft"}}
+    """Fill defaults, coerce types, and rename ``confidence`` → ``pegasus_confidence``.
+
+    Downstream code (severity scoring, exports, the dashboard schema) reads
+    ``pegasus_confidence``; the model emits ``confidence``.
+    """
+    out: dict = {**DEFAULT_PARSED}
+    for k, v in parsed.items():
+        if v is None and k != "vegetation_distance_estimate_ft":
+            continue
+        if k == "confidence":
+            out["pegasus_confidence"] = v
+        else:
+            out[k] = v
     if not isinstance(out.get("specific_defects"), list):
         out["specific_defects"] = []
     return out
@@ -112,9 +124,6 @@ def describe_clip(clip_s3_uri: str, account: str) -> tuple[dict, str]:
     raw = payload.get("message", "")
     parsed = _extract_json(raw) or {}
     normalized = _normalize(parsed)
-
-    pegasus_confidence = normalized.pop("confidence", "low")
-    normalized["pegasus_confidence"] = pegasus_confidence
     return normalized, raw
 
 
