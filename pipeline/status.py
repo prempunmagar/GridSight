@@ -1,11 +1,13 @@
 """Write `app/public/data/run_status.json` so the dashboard can poll pipeline progress."""
 
 import json
+import os
 from datetime import datetime, timezone
 
 from pipeline import config
 
 STATUS_PATH = config.APP_DATA_DIR / "run_status.json"
+RUN_ID_ENV = "GRIDSIGHT_RUN_ID"
 
 
 def write(state: str, stage: str = "", error: str = "",
@@ -22,6 +24,6 @@ def write(state: str, stage: str = "", error: str = "",
         "stage": stage,
         "detail": detail,
         "error": error,
-        "run_id": run_id,
+        "run_id": run_id or os.environ.get(RUN_ID_ENV, ""),
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }, indent=2))

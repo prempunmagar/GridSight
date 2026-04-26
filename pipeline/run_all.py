@@ -26,6 +26,9 @@ from pipeline import (
 )
 
 
+RUN_ID_ENV = "GRIDSIGHT_RUN_ID"
+
+
 def _git_sha() -> str:
     try:
         return subprocess.check_output(["git", "rev-parse", "--short", "HEAD"],
@@ -59,23 +62,26 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--max-candidates", type=int, default=30,
                         help="cap the number of dedup'd candidates sent to Pegasus")
     args = parser.parse_args(argv)
+    run_id = os.environ.get(RUN_ID_ENV) or datetime.now(timezone.utc).strftime("run_%Y%m%d_%H%M%S")
+    os.environ[RUN_ID_ENV] = run_id
 
     if not config.S3_BUCKET:
         print("ERROR: S3_BUCKET not set in .env", file=sys.stderr)
+        status.write("error", error="S3_BUCKET not set in .env", run_id=run_id)
         return 1
 
-    status.write("running", stage="starting")
+    status.write("running", stage="starting", run_id=run_id)
     try:
-        return _run_main(args)
+        return _run_main(args, run_id)
     except KeyboardInterrupt:
-        status.write("error", error="interrupted")
+        status.write("error", error="interrupted", run_id=run_id)
         raise
     except Exception as e:
-        status.write("error", error=f"{type(e).__name__}: {e}")
+        status.write("error", error=f"{type(e).__name__}: {e}", run_id=run_id)
         raise
 
 
-def _run_main(args) -> int:
+def _run_main(args, run_id: str) -> int:
     print("=" * 64)
     print("GridSight pipeline")
     print("=" * 64)
@@ -245,7 +251,7 @@ def _run_main(args) -> int:
     print(f"\nDone. {len(findings)} findings written.")
     print(f"  by severity: {sev_counts}")
     print(f"  outputs: {config.OUT_DIR}, {config.APP_DATA_DIR}, {config.APP_CLIPS_DIR}")
-    status.write("done", stage="exports", run_id=datetime.now(timezone.utc).strftime("run_%Y%m%d_%H%M%S"))
+    status.write("done", stage="exports", run_id=run_id)
     return 0
 
 

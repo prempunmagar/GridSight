@@ -40,8 +40,7 @@ export default function LibraryPage() {
   // Track whether the user kicked off this run from the library so we can
   // auto-route to /dashboard on completion (only for runs they triggered;
   // a stale "done" status from a prior session shouldn't bounce them).
-  const userTriggeredRef = useRef(false);
-  const prevStateRef = useRef(status.state);
+  const triggeredRunIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     fetch("/data/run_metadata.json", { cache: "no-store" })
@@ -51,13 +50,15 @@ export default function LibraryPage() {
   }, [status.run_id, status.state]);
 
   useEffect(() => {
-    const prev = prevStateRef.current;
-    if (userTriggeredRef.current && prev === "running" && status.state === "done") {
-      userTriggeredRef.current = false;
+    if (
+      triggeredRunIdRef.current &&
+      status.state === "done" &&
+      status.run_id === triggeredRunIdRef.current
+    ) {
+      triggeredRunIdRef.current = null;
       router.push("/dashboard");
     }
-    prevStateRef.current = status.state;
-  }, [status.state, router]);
+  }, [status.run_id, status.state, router]);
 
   const isRunning = status.state === "running";
 
@@ -81,7 +82,8 @@ export default function LibraryPage() {
         const body = await res.json().catch(() => ({}));
         setRequestError(body.error ?? `request failed (${res.status})`);
       } else {
-        userTriggeredRef.current = true;
+        const body = (await res.json().catch(() => ({}))) as { run_id?: unknown };
+        triggeredRunIdRef.current = typeof body.run_id === "string" ? body.run_id : null;
         setConfirmOpen(false);
       }
     } catch (e) {

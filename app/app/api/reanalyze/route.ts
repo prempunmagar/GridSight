@@ -3,6 +3,41 @@ import { spawn } from "child_process";
 import path from "path";
 import fs from "fs";
 
+const RUN_ID_ENV = "GRIDSIGHT_RUN_ID";
+
+function makeRunId() {
+  const timestamp = new Date().toISOString().replace(/\D/g, "").slice(0, 14);
+  return `run_${timestamp}`;
+}
+
+function writeStatus(
+  statusPath: string,
+  payload: {
+    state: "running" | "done" | "error" | "idle";
+    stage?: string;
+    detail?: string;
+    error?: string;
+    run_id?: string;
+  },
+) {
+  fs.mkdirSync(path.dirname(statusPath), { recursive: true });
+  fs.writeFileSync(
+    statusPath,
+    JSON.stringify(
+      {
+        state: payload.state,
+        stage: payload.stage ?? "",
+        detail: payload.detail ?? "",
+        error: payload.error ?? "",
+        run_id: payload.run_id ?? "",
+        updated_at: new Date().toISOString(),
+      },
+      null,
+      2,
+    ),
+  );
+}
+
 export async function POST() {
   const repoRoot = path.resolve(process.cwd(), "..");
   const statusPath = path.join(repoRoot, "app", "public", "data", "run_status.json");
@@ -43,6 +78,13 @@ export async function POST() {
     ? path.join(repoRoot, ".venv", "Scripts", "python.exe")
     : path.join(repoRoot, ".venv", "bin", "python");
   const python = fs.existsSync(venvPython) ? venvPython : "python";
+  const runId = makeRunId();
+
+  writeStatus(statusPath, {
+    state: "running",
+    stage: "starting",
+    run_id: runId,
+  });
 
   // detached:true on Windows always allocates a new console window, overriding
   // windowsHide. Skipping detached and relying on unref() lets the python child
@@ -52,9 +94,16 @@ export async function POST() {
     cwd: repoRoot,
     stdio: "ignore",
     windowsHide: true,
-    env: { ...process.env, PYTHONPATH: repoRoot },
+    env: { ...process.env, PYTHONPATH: repoRoot, [RUN_ID_ENV]: runId },
+  });
+  proc.on("error", (error) => {
+    writeStatus(statusPath, {
+      state: "error",
+      error: `${error.name}: ${error.message}`,
+      run_id: runId,
+    });
   });
   proc.unref();
 
-  return NextResponse.json({ ok: true, pid: proc.pid });
+  return NextResponse.json({ ok: true, pid: proc.pid, run_id: runId });
 }
