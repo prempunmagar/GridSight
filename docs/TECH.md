@@ -10,7 +10,7 @@
 GridSight is an automated visual inspection pipeline for high-voltage transmission infrastructure. It ingests the two standard outputs of any drone inspection — a video file and its companion per-second telemetry stream — and produces georeferenced, severity-scored findings ready for utility work-order systems.
 
 **Two anomaly classes:** insulator damage and vegetation encroachment.
-**Asset target:** lattice steel suspension towers carrying high-voltage AC transmission lines (345 kV default, voltage-class agnostic).
+**Asset target:** lattice steel suspension towers carrying high-voltage AC transmission lines (230 kV default, voltage-class agnostic; the canonical demo run uses 230 kV / MVCD 4.0 ft).
 **Regulatory grounding:** NERC FAC-003-4 for vegetation clearance distances; industry references for insulator failure modes.
 **Outputs:** CSV, GeoJSON, PDF report, plus a Next.js dashboard with map view, severity-coded finding pins, and 15-second evidence clip playback.
 
@@ -23,7 +23,7 @@ The pipeline is a seven-stage linear flow with two parallel inputs. Each stage h
 ```
 ┌────────────────────────────┐  ┌─────────────────────────────────┐
 │   demo_video.mp4           │  │   demo_video_telemetry.csv      │
-│   (curated 1080p, ~7 min)  │  │   (per-second GPS + altitude    │
+│   (curated 1080p, 13:32)   │  │   (per-second GPS + altitude    │
 │                            │  │    + heading; DJI-SRT-compat)   │
 └────────────┬───────────────┘  └─────────────┬───────────────────┘
              │                                │
@@ -105,7 +105,7 @@ The system assesses each finding against a class-specific model of normal:
 
 **Class A — Insulator damage.** Normal: intact porcelain or polymer insulator strings with no visible damage, contamination, or hardware corrosion. Anomalies are graded by failure mode: shattered/missing porcelain disks (critical), severe cap-and-pin corrosion or polymer sheath splitting (critical/high), heavy contamination or flashover burn marks (high), and lighter degradation patterns (moderate/low). Failure mode taxonomy and severity rules: see [`05_DOMAIN_KNOWLEDGE.md`](docs/05_DOMAIN_KNOWLEDGE.md) Sections 3.1 and 3.3.
 
-**Class B — Vegetation encroachment.** Normal: vegetation outside the right-of-way, or inside the right-of-way but well below conductor height. Anomalies are graded by distance to conductor as a multiple of the NERC FAC-003-4 Minimum Vegetation Clearance Distance (MVCD): vegetation in contact with a conductor or within 1.0× MVCD is critical (a NERC violation in real time), 1.0–2.5× MVCD is high (active management threshold), 2.5–6.25× MVCD is moderate (within ROW but safe distance), and beyond 6.25× MVCD outside the ROW is no-action. MVCD values are voltage-class dependent (4.0 ft for 230 kV, 4.3 ft for 345 kV, 7.0 ft for 500 kV, 11.6 ft for 765 kV at sea level). Full table and rules: see [`05_DOMAIN_KNOWLEDGE.md`](docs/05_DOMAIN_KNOWLEDGE.md) Sections 4.3, 4.5, and 4.8.
+**Class B — Vegetation encroachment.** Normal: vegetation outside the right-of-way, or inside the right-of-way but well below conductor height. Anomalies are graded by distance to conductor as a multiple of the NERC FAC-003-4 Minimum Vegetation Clearance Distance (MVCD): vegetation in contact with a conductor or within 1.0× MVCD is critical (a NERC violation in real time), 1.0–2.5× MVCD is high (active management threshold), 2.5–6.25× MVCD is moderate (within ROW but safe distance), and beyond 6.25× MVCD outside the ROW is no-action. MVCD values are voltage-class dependent (**4.0 ft for 230 kV** — the demo default — 4.3 ft for 345 kV, 7.0 ft for 500 kV, 11.6 ft for 765 kV at sea level). Full table and rules: see [`05_DOMAIN_KNOWLEDGE.md`](docs/05_DOMAIN_KNOWLEDGE.md) Sections 4.3, 4.5, and 4.8.
 
 **Asset-centric data model.** The pipeline emits a record for every observed asset, including healthy ones (with `severity = no_action`). The dashboard filters by condition rather than the pipeline filtering before output. This is more honest about Marengo's false-positive surface (intact findings make it visible rather than hiding it) and keeps the architecture forward-compatible with full-inventory monitoring.
 
@@ -121,7 +121,7 @@ GridSight uses both TwelveLabs foundation models in distinct roles, accessed via
 
 **Invocation pattern:** asynchronous. `bedrock_runtime.start_async_invoke()` initiates the indexing job; the response includes an `invocationArn` that the pipeline polls via `get_async_invoke()` until status is `Completed`. Indexing output (vector embeddings) is written to S3. Querying then proceeds against the indexed asset.
 
-**Model ID:** `us.twelvelabs.marengo-embed-3-0-v1:0` (cross-region inference profile, us-east-1).
+**Model ID:** `twelvelabs.marengo-embed-3-0-v1:0` (base model ID for async invocation, us-east-1).
 
 **Why semantic search over single-frame CV:** see Section 2 above. Marengo's per-clip multimodal embedding captures motion, scene context, and entity relationships that single-frame classification cannot.
 
@@ -151,34 +151,34 @@ GridSight is designed to ingest the standard inputs that a real drone inspection
 
 `scripts/srt_to_csv.py` is a real DJI SRT parser, not a stub. A judge from the drone industry could hand the team a real DJI SRT file, and the pipeline would process it without code changes. The hackathon demo uses a generated telemetry file alongside YouTube-sourced footage (because YouTube strips drone telemetry), but the format is real and the pipeline does not know or care which is which.
 
-The system is **voltage-class agnostic**: severity rules look up MVCD values from a table indexed by voltage class. The demo defaults to 345 kV; switching to 230 kV, 500 kV, or 765 kV requires changing one configuration value, no code changes.
+The system is **voltage-class agnostic**: severity rules look up MVCD values from a table indexed by voltage class. The demo defaults to **230 kV** (MVCD 4.0 ft); switching to 345 kV, 500 kV, or 765 kV requires changing one configuration value, no code changes.
 
 ---
 
 ## 6. Performance Benchmarks
 
-> *Numbers in brackets are placeholders; real values will be filled in after the canonical pipeline run completes.*
+Measured on the canonical pipeline run (`run_20260426_113904`) against `data/curated/demo_video.mp4` (13:32, 1080p) with the seven anomaly queries active.
 
 | Metric | Target | Measured |
 |---|---|---|
-| End-to-end processing time per minute of source video | < 60 sec | `[X]` sec |
-| Marengo indexing time (full ~7 min video) | < 10 min | `[Y]` min |
-| Pegasus invocation latency per clip (sync) | < 15 sec | `[Z]` sec average |
-| Total Bedrock cost per minute of footage | n/a | `~$[A]` per minute |
-| Findings produced per minute of footage | depends on damage density | `[B]` findings / min |
+| End-to-end processing time per minute of source video | < 60 sec | ~28 sec / min source (cold cache) |
+| Marengo indexing time (full 13:32 video) | < 10 min | 30 sec |
+| Pegasus invocation latency per clip (sync) | < 15 sec | ~9 sec average |
+| Total Bedrock cost per minute of footage | n/a | ~$0.30 / min source (estimate) |
+| Findings produced per minute of footage | depends on damage density | 1.03 findings / min |
 
-Performance benchmarks reflect the canonical run on `data/curated/demo_video.mp4` against the configured query set.
+Cold-cache total runtime for a fresh re-analysis (Marengo index + 7 text embeddings + 14 Pegasus calls + exports) is ~6 minutes. Subsequent runs reuse on-disk caches for Marengo clip embeddings, text query embeddings, and Pegasus per-clip JSON, so iteration on severity rules / exports completes in seconds.
 
 ---
 
 ## 7. Repository
 
-GitHub: `[repo-url]`
+GitHub: <https://github.com/prempunmagar/GridSight>
 
 Setup:
 ```bash
-git clone [repo-url]
-cd gridsight
+git clone https://github.com/prempunmagar/GridSight
+cd GridSight
 pip install -r requirements.txt
 cd app && npm install
 ```
