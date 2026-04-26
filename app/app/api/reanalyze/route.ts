@@ -27,9 +27,12 @@ export async function POST() {
     : path.join(repoRoot, ".venv", "bin", "python");
   const python = fs.existsSync(venvPython) ? venvPython : "python";
 
+  // detached:true on Windows always allocates a new console window, overriding
+  // windowsHide. Skipping detached and relying on unref() lets the python child
+  // run independently while keeping the console hidden. The Next.js dev server
+  // is long-lived for the demo's lifetime, which is all we need.
   const proc = spawn(python, ["-u", "-m", "pipeline.run_all"], {
     cwd: repoRoot,
-    detached: true,
     stdio: "ignore",
     windowsHide: true,
     env: { ...process.env, PYTHONPATH: repoRoot },

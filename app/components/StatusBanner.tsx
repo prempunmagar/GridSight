@@ -124,17 +124,26 @@ export default function StatusBanner({ status }: { status: RunStatus }) {
   }
 
   if (status.state === "error") {
+    const tokenExpired = /ExpiredToken|security token.*expired|UnrecognizedClientException/i.test(
+      status.error,
+    );
     return (
       <div className="bg-sev-critical text-white px-6 py-2 text-[12px] font-medium flex items-center gap-3 no-print">
-        <span className="inline-block w-2 h-2 rounded-full bg-white" />
-        <span>Pipeline failed</span>
-        <span className="font-mono text-[11px] opacity-90 truncate">{status.error}</span>
+        <span className="inline-block w-2 h-2 rounded-full bg-white shrink-0" />
+        <span className="shrink-0">Pipeline failed</span>
+        {tokenExpired ? (
+          <span className="font-mono text-[11px] opacity-95 truncate">
+            AWS session token expired — refresh `.env` from Workshop Studio and re-trigger.
+          </span>
+        ) : (
+          <span className="font-mono text-[11px] opacity-90 truncate">{status.error}</span>
+        )}
         <button
           type="button"
           onClick={() => {
             void fetch("/api/status/clear", { method: "POST" });
           }}
-          className="ml-auto h-6 px-2 rounded text-[11px] font-medium bg-white/15 hover:bg-white/25"
+          className="ml-auto h-6 px-2 rounded text-[11px] font-medium bg-white/15 hover:bg-white/25 shrink-0"
         >
           Dismiss
         </button>
