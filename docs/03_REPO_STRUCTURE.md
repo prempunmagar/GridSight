@@ -284,6 +284,7 @@ export interface Finding {
   severity: Severity;
   combined_confidence: Confidence;
   needs_human_review: boolean;
+  nerc_citation: string | null;          // e.g. "FAC-003 §R2.1"; populated by pipeline/severity.py from the rules engine
 
   // Evidence
   evidence_clip_path: string;            // path relative to app/public/, e.g. "/clips/f001.mp4"
