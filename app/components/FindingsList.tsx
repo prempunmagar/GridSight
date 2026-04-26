@@ -81,9 +81,9 @@ export default function FindingsList({
 
   return (
     <aside
-      className="flex-1 basis-0 min-w-[320px] bg-surface-panel border border-border rounded-lg flex flex-col overflow-hidden h-full"
+      className="findings-print-target flex-1 basis-0 min-w-[320px] bg-surface-panel border border-border rounded-lg flex flex-col overflow-hidden h-full"
     >
-      <div className="px-4 pt-4 pb-3 border-b border-border bg-surface-panel">
+      <div className="px-4 pt-4 pb-3 border-b border-border bg-surface-panel no-print">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-[12px] font-semibold tracking-[0.08em] uppercase text-ink-secondary">
             Findings
@@ -129,15 +129,16 @@ export default function FindingsList({
         )}
 
         {visible.map((f) => (
-          <FindingCard
-            key={f.finding_id}
-            finding={f}
-            selected={f.finding_id === selectedId}
-            voltageClass={voltageClass}
-            isReviewed={reviewedIds.has(f.finding_id)}
-            isFlagged={flaggedIds.has(f.finding_id)}
-            onSelect={() => onSelect(f.finding_id)}
-          />
+          <div key={f.finding_id} className="finding-card-print">
+            <FindingCard
+              finding={f}
+              selected={f.finding_id === selectedId}
+              voltageClass={voltageClass}
+              isReviewed={reviewedIds.has(f.finding_id)}
+              isFlagged={flaggedIds.has(f.finding_id)}
+              onSelect={() => onSelect(f.finding_id)}
+            />
+          </div>
         ))}
 
         {showIntact &&

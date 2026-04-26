@@ -86,7 +86,7 @@ export default function DetailPanel({
   return (
     <aside
       key={finding.finding_id}
-      className="panel-enter flex-1 basis-0 min-w-[340px] bg-surface-panel border border-border rounded-lg flex flex-col overflow-hidden shadow-panel h-full"
+      className="no-print panel-enter flex-1 basis-0 min-w-[340px] bg-surface-panel border border-border rounded-lg flex flex-col overflow-hidden shadow-panel h-full"
     >
       <div className="h-14 px-4 flex items-center gap-2 border-b border-border bg-surface-panel">
         <span

@@ -19,11 +19,34 @@ import type { SortKey } from "@/components/SortDropdown";
 const FlightPathMap = dynamic(() => import("@/components/FlightPathMap"), {
   ssr: false,
   loading: () => (
-    <div className="flex-1 bg-surface-subtle border border-border rounded-lg flex items-center justify-center text-ink-tertiary text-sm">
+    <div className="no-print flex-1 bg-surface-subtle border border-border rounded-lg flex items-center justify-center text-ink-tertiary text-sm">
       loading map…
     </div>
   ),
 });
+
+function PrintHeader({ meta, findingCount }: { meta: RunMetadata; findingCount: number }) {
+  const sev = meta.findings_by_severity;
+  const date = meta.run_datetime_utc.slice(0, 10);
+  return (
+    <div className="print-only px-8 pt-6 pb-4 border-b border-border">
+      <div className="flex items-baseline justify-between">
+        <span className="text-2xl font-semibold tracking-tight">GridSight findings report</span>
+        <span className="font-mono text-xs text-ink-secondary">
+          {meta.voltage_class} · {date} · run {meta.run_id}
+        </span>
+      </div>
+      <div className="mt-2 text-xs text-ink-secondary">
+        {meta.corridor_description} · {findingCount} findings ·{" "}
+        <span style={{ color: "#DC2626" }}>{sev.critical} critical</span> ·{" "}
+        <span style={{ color: "#EA580C" }}>{sev.high} high</span> ·{" "}
+        <span style={{ color: "#D97706" }}>{sev.moderate} moderate</span> ·{" "}
+        <span style={{ color: "#475569" }}>{sev.low} low</span> ·{" "}
+        <span style={{ color: "#16A34A" }}>{sev.no_action} intact</span>
+      </div>
+    </div>
+  );
+}
 
 const COLUMN_GAP = 24;
 const OUTER_PADDING_X = 24;
@@ -94,6 +117,8 @@ export default function Page() {
     <div className="min-h-screen bg-surface-canvas text-ink-primary">
       <Header meta={meta} />
       <StatusBanner status={status} />
+
+      <PrintHeader meta={meta} findingCount={findings.length} />
 
       <div
         style={{

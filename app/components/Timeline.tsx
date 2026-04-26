@@ -59,7 +59,7 @@ export default function Timeline({ findings, totalSeconds, selectedId, onSelect 
   const scrubPct = selected ? (selected.timestamp_seconds / total) * 100 : 0;
 
   return (
-    <footer className="bg-surface-panel border border-border rounded-lg flex flex-col overflow-hidden">
+    <footer className="no-print bg-surface-panel border border-border rounded-lg flex flex-col overflow-hidden">
       <div className="px-3 pt-1.5 pb-1 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-[10px] uppercase tracking-[0.1em] text-slate-600 font-semibold">

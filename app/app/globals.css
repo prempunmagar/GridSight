@@ -75,7 +75,37 @@ video::-webkit-media-controls-panel { background-color: rgba(15,23,42,0.85); }
 
 .no-select { user-select: none; }
 
+.print-only { display: none; }
+
 @media print {
   .no-print { display: none !important; }
+  .print-only { display: block !important; }
   body { background: white; }
+
+  /* Force the dashboard's main grid to print as a single column of findings.
+     The map, detail panel, and timeline carry .no-print and disappear; the
+     findings list expands to fill the page. */
+  .findings-print-target {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    flex: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .findings-print-target * {
+    overflow: visible !important;
+  }
+  .findings-print-target .thin-scroll {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+  /* Prevent finding cards from breaking across pages */
+  .finding-card-print {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
 }
