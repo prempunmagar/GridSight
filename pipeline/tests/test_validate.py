@@ -9,6 +9,7 @@ import pytest
 
 from pipeline.validate import (
     CLASSES,
+    clip_normalize_ground_truth,
     compute_metrics,
     filter_inputs,
     greedy_match,
@@ -252,6 +253,46 @@ def test_filter_drops_no_action_predictions_and_other_class_gt():
     assert [g["id"] for g in kept_g] == [1]
     assert dropped["predictions_dropped_no_action"] == ["intact"]
     assert dropped["ground_truth_dropped_class_other"] == [2]
+
+
+# ----------------------------- clip-normalized metric -------------------------
+
+
+def test_clip_normalize_expands_short_gt_window_around_midpoint():
+    gts = [_gt(1, 102, 103, klass="vegetation_encroachment")]
+    normalized = clip_normalize_ground_truth(gts, clip_duration_seconds=15)
+
+    assert normalized[0]["start_seconds"] == pytest.approx(95.0)
+    assert normalized[0]["end_seconds"] == pytest.approx(110.0)
+    assert normalized[0]["clip_normalized_from"] == {
+        "start_seconds": 102,
+        "end_seconds": 103,
+    }
+    assert gts[0]["start_seconds"] == 102
+
+
+def test_clip_normalize_keeps_long_gt_window_unchanged():
+    gts = [_gt(1, 591, 633, klass="insulator_damage")]
+    normalized = clip_normalize_ground_truth(gts, clip_duration_seconds=15)
+
+    assert normalized[0]["start_seconds"] == 591
+    assert normalized[0]["end_seconds"] == 633
+    assert "clip_normalized_from" not in normalized[0]
+
+
+def test_clip_normalized_windows_can_match_fixed_evidence_clip():
+    preds = [_pred("p1", 100.625, klass="vegetation_encroachment", duration=15)]
+    gts = [_gt(1, 102, 103, klass="vegetation_encroachment")]
+
+    strict = compute_metrics(preds, gts, threshold=0.5)
+    normalized = compute_metrics(
+        preds,
+        clip_normalize_ground_truth(gts, clip_duration_seconds=15),
+        threshold=0.5,
+    )
+
+    assert strict["overall"]["tp"] == 0
+    assert normalized["overall"]["tp"] == 1
 
 
 # ----------------------------- loaders ---------------------------------------

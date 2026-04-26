@@ -8,6 +8,7 @@ This README documents the **validation module** (`validate.py`) — the post-hoc
 
 ```bash
 # defaults: out/findings.json vs data/validation/ground_truth.csv, IoU>=0.5
+# also writes clip_normalized metrics for 15s evidence-clip evaluation
 python -m pipeline.validate
 
 # custom paths or threshold
@@ -18,7 +19,7 @@ python -m pipeline.validate --threshold 0.3      # looser temporal match for sen
 pytest pipeline/tests/test_validate.py -q
 ```
 
-Writes `out/validation_metrics.json` and prints a console summary (per-class P/R/F1, confusion matrix, severity calibration).
+Writes `out/validation_metrics.json` and prints a console summary (per-class P/R/F1, confusion matrix, severity calibration, and clip-normalized companion metrics).
 
 ## What the spec asks for
 
@@ -45,6 +46,10 @@ IoU(a, b) = |a ∩ b| / |a ∪ b|
 A pair is eligible if `IoU >= threshold` (default `0.5`). Pairing is **greedy by IoU descending** — the highest-IoU candidate is consumed first, and each ground-truth row and each prediction can pair at most once. This avoids double-counting when several predictions cluster around one true anomaly.
 
 The build plan (`docs/02_BUILD_PLAN.md` Phase 5 task 2) specifies "≥50% overlap" without naming a denominator. IoU is the standard for event/action detection and the strictest interpretation; using it makes the F1 numbers defensible against any reasonable challenge.
+
+### Clip-normalized companion metric
+
+GridSight returns fixed-duration evidence clips (`config.CLIP_DURATION_SECONDS`, currently 15 seconds). Some ground-truth rows mark only the most visible 1- to 4-second instant inside that clip, which makes raw IoU ≥ 0.5 impossible even for a visually correct clip. `validate.py` therefore also writes `clip_normalized`: any GT window shorter than the evidence clip is expanded around its midpoint to the clip duration, then the same IoU rule is applied. The strict raw-window metrics remain the top-level baseline.
 
 ### Class semantics
 
@@ -104,6 +109,15 @@ Each unmatched prediction lands in `false_positives[]` with its full Pegasus out
   },
   "overall": { "tp": 0, "fp": 0, "fn": 0,
                "precision": 0.0, "recall": 0.0, "f1": 0.0 },
+  "clip_normalized": {
+    "by_class": { "...": "same shape as top-level by_class" },
+    "overall": { "tp": 0, "fp": 0, "fn": 0,
+                 "precision": 0.0, "recall": 0.0, "f1": 0.0 },
+    "confusion_matrix": { "...": "same shape as top-level confusion_matrix" },
+    "severity_calibration": { "...": "same shape as top-level severity_calibration" },
+    "false_positives": [],
+    "false_negatives": []
+  },
   "confusion_matrix": {
     "rows": ["insulator_damage", "vegetation_encroachment", "none"],
     "cols": ["insulator_damage", "vegetation_encroachment", "none"],

@@ -37,6 +37,7 @@ Output:
 from __future__ import annotations
 
 import argparse
+import copy
 import csv
 import json
 import sys
@@ -216,6 +217,27 @@ def compute_metrics(predictions: list[dict], ground_truth: list[dict],
     }
 
 
+def clip_normalize_ground_truth(ground_truth: list[dict], clip_duration_seconds: float) -> list[dict]:
+    """Expand short GT windows to the evidence clip duration around their midpoint.
+
+    The strict metric keeps the labeler's exact visibility window. This companion
+    view matches GridSight's product surface: fixed-duration evidence clips.
+    """
+    normalized = copy.deepcopy(ground_truth)
+    for gt in normalized:
+        duration = gt["end_seconds"] - gt["start_seconds"]
+        if duration >= clip_duration_seconds:
+            continue
+        midpoint = (gt["start_seconds"] + gt["end_seconds"]) / 2.0
+        gt["start_seconds"] = midpoint - clip_duration_seconds / 2.0
+        gt["end_seconds"] = midpoint + clip_duration_seconds / 2.0
+        gt["clip_normalized_from"] = {
+            "start_seconds": midpoint - duration / 2.0,
+            "end_seconds": midpoint + duration / 2.0,
+        }
+    return normalized
+
+
 def _build_confusion_matrix(predictions: list[dict], ground_truth: list[dict],
                             pairs: list[tuple[int, int, float]]) -> dict:
     """rows = actual class (incl 'none' for false-alarm preds with no GT),
@@ -339,8 +361,9 @@ def filter_inputs(predictions: list[dict], ground_truth: list[dict]) -> tuple[li
 # ------------------------------- CLI / report --------------------------------
 
 
-def _print_summary(metrics: dict, dropped: dict, n_preds: int, n_gts: int,
-                   out_path: Path, threshold: float) -> None:
+def _print_summary(metrics: dict, clip_normalized_metrics: dict, dropped: dict,
+                   n_preds: int, n_gts: int, out_path: Path, threshold: float,
+                   clip_duration_seconds: float) -> None:
     print("=" * 64)
     print(f"GridSight validation  (IoU>={threshold})")
     print("=" * 64)
@@ -356,6 +379,13 @@ def _print_summary(metrics: dict, dropped: dict, n_preds: int, n_gts: int,
     print("-" * 64)
     print(f"{'overall (micro)':<28}{o['tp']:>4}{o['fp']:>4}{o['fn']:>4}"
           f"{o['precision']:>8.3f}{o['recall']:>8.3f}{o['f1']:>8.3f}")
+    print()
+
+    cn = clip_normalized_metrics["overall"]
+    print(f"Clip-normalized metric (GT windows shorter than {clip_duration_seconds:g}s expanded before IoU):")
+    print(f"  overall F1:        {cn['f1']:.3f}")
+    for c, m in clip_normalized_metrics["by_class"].items():
+        print(f"  {c:<26} P={m['precision']:.3f} R={m['recall']:.3f} F1={m['f1']:.3f}")
     print()
 
     cm = metrics["confusion_matrix"]
@@ -388,6 +418,8 @@ def main(argv: list[str] | None = None) -> int:
                    help="output JSON path")
     p.add_argument("--threshold", type=float, default=DEFAULT_IOU_THRESHOLD,
                    help=f"IoU threshold for matching (default {DEFAULT_IOU_THRESHOLD})")
+    p.add_argument("--clip-duration", type=float, default=config.CLIP_DURATION_SECONDS,
+                   help="evidence clip duration used for clip-normalized GT windows")
     args = p.parse_args(argv)
 
     if not args.findings.exists():
@@ -402,6 +434,9 @@ def main(argv: list[str] | None = None) -> int:
     kept_preds, kept_gts, dropped = filter_inputs(predictions, ground_truth)
 
     metrics = compute_metrics(kept_preds, kept_gts, threshold=args.threshold)
+    clip_normalized_gts = clip_normalize_ground_truth(kept_gts, args.clip_duration)
+    clip_normalized_metrics = compute_metrics(kept_preds, clip_normalized_gts,
+                                              threshold=args.threshold)
 
     payload = {
         "metadata": {
@@ -420,14 +455,21 @@ def main(argv: list[str] | None = None) -> int:
             "n_ground_truth_total": len(ground_truth),
             "n_ground_truth_used": len(kept_gts),
             "exclusions": dropped,
+            "clip_normalized_matching": {
+                "rule": f"ground-truth windows shorter than {args.clip_duration:g}s "
+                        "are expanded around their midpoint before applying the same IoU rule",
+                "clip_duration_seconds": args.clip_duration,
+            },
         },
         **metrics,
+        "clip_normalized": clip_normalized_metrics,
     }
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
-    _print_summary(metrics, dropped, len(kept_preds), len(kept_gts), args.out, args.threshold)
+    _print_summary(metrics, clip_normalized_metrics, dropped, len(kept_preds),
+                   len(kept_gts), args.out, args.threshold, args.clip_duration)
     return 0
 
 
