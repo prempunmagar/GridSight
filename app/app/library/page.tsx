@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   ChevronDown,
@@ -28,6 +29,7 @@ const CATEGORIES: { k: string; label: string }[] = [
 ];
 
 export default function LibraryPage() {
+  const router = useRouter();
   const [meta, setMeta] = useState<RunMetadata | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [requestError, setRequestError] = useState<string | null>(null);
@@ -35,12 +37,27 @@ export default function LibraryPage() {
   const [activeCat, setActiveCat] = useState("all");
   const status = useRunStatus(2000);
 
+  // Track whether the user kicked off this run from the library so we can
+  // auto-route to /dashboard on completion (only for runs they triggered;
+  // a stale "done" status from a prior session shouldn't bounce them).
+  const userTriggeredRef = useRef(false);
+  const prevStateRef = useRef(status.state);
+
   useEffect(() => {
     fetch("/data/run_metadata.json", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then(setMeta)
       .catch(() => setMeta(null));
   }, [status.run_id, status.state]);
+
+  useEffect(() => {
+    const prev = prevStateRef.current;
+    if (userTriggeredRef.current && prev === "running" && status.state === "done") {
+      userTriggeredRef.current = false;
+      router.push("/dashboard");
+    }
+    prevStateRef.current = status.state;
+  }, [status.state, router]);
 
   const isRunning = status.state === "running";
 
@@ -64,6 +81,7 @@ export default function LibraryPage() {
         const body = await res.json().catch(() => ({}));
         setRequestError(body.error ?? `request failed (${res.status})`);
       } else {
+        userTriggeredRef.current = true;
         setConfirmOpen(false);
       }
     } catch (e) {
