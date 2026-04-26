@@ -21,6 +21,7 @@ from pipeline import (
     pegasus_describe,
     queries,
     severity,
+    status,
     telemetry,
 )
 
@@ -63,9 +64,22 @@ def main(argv: list[str] | None = None) -> int:
         print("ERROR: S3_BUCKET not set in .env", file=sys.stderr)
         return 1
 
+    status.write("running", stage="starting")
+    try:
+        return _run_main(args)
+    except KeyboardInterrupt:
+        status.write("error", error="interrupted")
+        raise
+    except Exception as e:
+        status.write("error", error=f"{type(e).__name__}: {e}")
+        raise
+
+
+def _run_main(args) -> int:
     print("=" * 64)
     print("GridSight pipeline")
     print("=" * 64)
+    status.write("running", stage="ingest")
     video_path, telemetry_csv = ingest.assert_inputs_exist()
     print(f"  video:     {video_path}")
     print(f"  telemetry: {telemetry_csv}")
@@ -74,6 +88,7 @@ def main(argv: list[str] | None = None) -> int:
     duration_s = _video_duration_seconds(video_path)
     print(f"  duration:  {duration_s:.1f}s")
 
+    status.write("running", stage="marengo-index")
     cache_path = Path(args.cache_embeddings)
     if cache_path.exists() and not args.force_reindex:
         print(f"\n[Stage 2] Loading cached clip embeddings from {cache_path}")
@@ -89,6 +104,7 @@ def main(argv: list[str] | None = None) -> int:
         cache_path.write_text(json.dumps(clip_embeddings))
         print(f"  cached embeddings -> {cache_path}")
 
+    status.write("running", stage="marengo-detect")
     print(f"\n[Stage 3] Detecting candidates ({len(queries.active_queries(args.include_inventory))} queries)")
     active = queries.active_queries(args.include_inventory)
     text_cache_path = config.OUT_DIR / "marengo_text_embeddings.json"
@@ -101,6 +117,7 @@ def main(argv: list[str] | None = None) -> int:
         deduped = sorted(deduped, key=lambda c: c["marengo_score"], reverse=True)[:args.max_candidates]
         print(f"  capped to top {args.max_candidates} by marengo_score")
 
+    status.write("running", stage="extract-clips")
     print("\n[Stage 4] Extracting evidence clips")
     config.CLIPS_WORKING_DIR.mkdir(parents=True, exist_ok=True)
     deduped.sort(key=lambda c: c["timestamp_seconds"])
@@ -115,6 +132,7 @@ def main(argv: list[str] | None = None) -> int:
         enriched.append(c)
         print(f"  {finding_id}: t={c['timestamp_seconds']:6.1f}s  score={c['marengo_score']:.3f}")
 
+    status.write("running", stage="pegasus")
     print("\n[Stage 5] Describing clips with Pegasus (sync)")
     pegasus_cache_path = config.OUT_DIR / "pegasus_responses.json"
     cache = json.loads(pegasus_cache_path.read_text()) if pegasus_cache_path.exists() else {}
@@ -149,6 +167,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"  {c['finding_id']} {tag}: {parsed['component_type']:<17} {parsed['condition']:<12}"
               f" defects={parsed['specific_defects']!r}")
 
+    status.write("running", stage="severity")
     print("\n[Stage 6] Severity scoring + telemetry lookup")
     df = telemetry.load_telemetry(telemetry_csv)
 
@@ -187,6 +206,7 @@ def main(argv: list[str] | None = None) -> int:
             "evidence_clip_path": f"/clips/{c['finding_id']}.mp4",
         })
 
+    status.write("running", stage="exports")
     print("\n[Stage 7] Writing exports")
     config.OUT_DIR.mkdir(parents=True, exist_ok=True)
     export_csv.write_csv(findings, config.OUT_DIR / "findings.csv")
@@ -211,6 +231,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"\nDone. {len(findings)} findings written.")
     print(f"  by severity: {sev_counts}")
     print(f"  outputs: {config.OUT_DIR}, {config.APP_DATA_DIR}, {config.APP_CLIPS_DIR}")
+    status.write("done", stage="exports", run_id=datetime.now(timezone.utc).strftime("run_%Y%m%d_%H%M%S"))
     return 0
 
 

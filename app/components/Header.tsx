@@ -1,6 +1,7 @@
 "use client";
 
-import { Settings } from "lucide-react";
+import Link from "next/link";
+import { ArrowLeft, Settings } from "lucide-react";
 import type { RunMetadata } from "@/types/metadata";
 import { SEVERITY_HEX } from "@/lib/severity";
 import ExportButtons from "./ExportButtons";
@@ -18,6 +19,12 @@ export default function Header({ meta }: { meta: RunMetadata | null }) {
         <span className="text-[24px] font-semibold tracking-tight text-ink-primary leading-none">
           GridSight
         </span>
+        <Link
+          href="/library"
+          className="h-7 inline-flex items-center gap-1 px-2 rounded-md border border-border bg-surface-panel text-[11px] font-medium text-ink-secondary hover:bg-surface-subtle"
+        >
+          <ArrowLeft size={12} /> Library
+        </Link>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center font-mono leading-tight">
