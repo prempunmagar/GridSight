@@ -89,8 +89,11 @@ video::-webkit-media-controls-panel { background-color: rgba(15,23,42,0.85); }
 .prose-doc a { color: var(--color-brand); text-decoration: underline; text-underline-offset: 2px; }
 .prose-doc a:hover { text-decoration-thickness: 2px; }
 .prose-doc code { font-family: var(--font-mono), monospace; font-size: 12.5px; background: var(--color-surface-subtle); padding: 1px 5px; border-radius: 3px; border: 1px solid var(--color-border); }
-.prose-doc pre { background: var(--color-surface-subtle); border: 1px solid var(--color-border); border-radius: 6px; padding: 12px; overflow-x: auto; font-size: 12px; line-height: 1.5; margin: 0 0 14px; }
-.prose-doc pre code { background: transparent; border: none; padding: 0; }
+.prose-doc pre { background: var(--color-surface-subtle); border: 1px solid var(--color-border); border-radius: 6px; padding: 14px 16px; overflow-x: auto; font-size: 11.5px; line-height: 1.55; margin: 0 0 14px; }
+.prose-doc pre::-webkit-scrollbar { height: 6px; }
+.prose-doc pre::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
+.prose-doc pre::-webkit-scrollbar-track { background: transparent; }
+.prose-doc pre code { background: transparent; border: none; padding: 0; font-size: inherit; }
 .prose-doc ul, .prose-doc ol { margin: 0 0 14px; padding-left: 24px; }
 .prose-doc li { margin: 4px 0; }
 .prose-doc blockquote { border-left: 3px solid var(--color-brand); padding: 4px 0 4px 14px; margin: 0 0 14px; color: var(--color-ink-secondary); font-style: italic; background: var(--color-surface-subtle); border-radius: 0 4px 4px 0; }

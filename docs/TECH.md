@@ -26,47 +26,47 @@ Outputs: CSV, GeoJSON, structured JSON, plus a Next.js dashboard with map view, 
 The pipeline is a seven-stage linear flow with two parallel inputs. Each stage has a defined input/output contract so stages can be developed and tested independently.
 
 ```
-┌────────────────────────────┐  ┌─────────────────────────────────┐
-│   demo_video.mp4           │  │   demo_video_telemetry.csv     │
-│   (curated 1080p, 13:32)   │  │   (per-second GPS + altitude   │
-│                            │  │    + heading; DJI-SRT-compat)  │
-└────────────┬───────────────┘  └─────────────┬───────────────────┘
-             │                                │
-             └────────────┬───────────────────┘
+┌─────────────────────────┐  ┌─────────────────────────┐
+│  demo_video.mp4         │  │ demo_video_telemetry.csv│
+│  curated 1080p, 13:32   │  │ per-second GPS + AGL    │
+│                         │  │ + heading (DJI SRT)     │
+└──────────┬──────────────┘  └──────────┬──────────────┘
+           │                            │
+           └──────────────┬─────────────┘
                           ▼
-                Stage 1 — Ingest inputs
-                pipeline/ingest.py
+        Stage 1 · Ingest inputs           pipeline/ingest.py
                           │
                           ▼
-            Stage 2 — Index video         POST → bedrock.start_async_invoke
-            pipeline/marengo_index.py     twelvelabs.marengo-embed-3-0-v1:0
-                          │               (S3 input → S3 embedding output)
-                          ▼
-            Stage 3 — Detect anomalies    POST → similarity search
-            pipeline/marengo_detect.py    (NL queries → timestamped hits)
+        Stage 2 · Marengo index           pipeline/marengo_index.py
+                                          (async start_async_invoke,
+                                           S3 in / S3 embeddings out)
                           │
                           ▼
-            Stage 4 — Extract clips       ffmpeg subprocess
-            pipeline/clip_extract.py      (10–15 s windows around hits)
+        Stage 3 · Detect candidates       pipeline/marengo_detect.py
+                                          (text queries → timestamps)
                           │
                           ▼
-            Stage 5 — Describe clips      POST → bedrock.invoke_model
-            pipeline/pegasus_describe.py  twelvelabs.pegasus-1-2-v1:0
-                          │               (sync; structured JSON output)
-                          ▼
-            Stage 6 — Score + locate      Python rules engine
-            pipeline/severity.py          + telemetry lookup at timestamp
+        Stage 4 · Extract clips           pipeline/extract_clips.py
+                                          (ffmpeg, 15-second windows)
                           │
                           ▼
-            Stage 7 — Export              Writes findings.json, CSV,
-            pipeline/export.py            GeoJSON, clips/ to disk
+        Stage 5 · Pegasus describe        pipeline/pegasus_describe.py
+                                          (sync invoke, structured JSON)
                           │
                           ▼
-                ┌──────────────────────────────────┐
-                │   Next.js dashboard (app/)       │
-                │   reads static files from disk   │
-                │   No API layer between stages    │
-                └──────────────────────────────────┘
+        Stage 6 · Score + locate          pipeline/severity.py
+                                          (NERC rules + telemetry lookup)
+                          │
+                          ▼
+        Stage 7 · Export                  pipeline/export_*.py
+                                          (CSV, GeoJSON, dashboard JSON)
+                          │
+                          ▼
+        ┌──────────────────────────────────────┐
+        │  Next.js dashboard (app/)            │
+        │  reads static files from disk        │
+        │  no API layer between pipeline & UI  │
+        └──────────────────────────────────────┘
 ```
 
 ### Pipeline / dashboard contract

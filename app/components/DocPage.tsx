@@ -65,7 +65,7 @@ export default function DocPage({ title, filename, githubPath, back, nextCta }: 
         </div>
       </header>
 
-      <main className="max-w-[820px] mx-auto px-8 py-10">
+      <main className="max-w-[920px] mx-auto px-8 py-10">
         {error ? (
           <div className="text-sev-critical text-sm font-mono">
             Failed to load doc: {error}
