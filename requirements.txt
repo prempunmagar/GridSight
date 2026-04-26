@@ -1,0 +1,6 @@
+boto3
+pandas
+numpy
+ffmpeg-python
+python-dotenv
+pytest
