@@ -46,32 +46,32 @@ export default function Timeline({ findings, totalSeconds, selectedId, onSelect 
   const scrubPct = selected ? (selected.timestamp_seconds / total) * 100 : 0;
 
   return (
-    <footer className="h-14 bg-surface-panel border border-border rounded-lg flex flex-col overflow-hidden">
+    <footer className="bg-surface-panel border border-border rounded-lg flex flex-col overflow-hidden">
       <div className="px-3 pt-1.5 pb-1 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-[10px] uppercase tracking-[0.1em] text-ink-secondary font-semibold">
+          <span className="text-[10px] uppercase tracking-[0.1em] text-slate-600 font-semibold">
             Timeline
           </span>
-          <span className="font-mono text-[10px] text-ink-tertiary">
+          <span className="font-mono text-[10px] text-slate-400">
             {Math.floor(total / 60)} min · 1 col / sec · {findings.filter((f) => f.severity !== "no_action").length} actionable
           </span>
         </div>
         {selected && (
-          <span className="font-mono text-[10px] text-ink-secondary">
-            <span className="text-ink-tertiary">selected </span>
+          <span className="font-mono text-[10px] text-slate-600">
+            <span className="text-slate-400">selected </span>
             {selected.finding_id} · {formatT(selected.timestamp_seconds)}
           </span>
         )}
       </div>
 
-      <div className="relative flex-1 px-3 pb-1.5">
+      <div className="relative px-3 pt-1 pb-1 h-6">
         {selected && (
           <div
-            className="absolute top-0 bottom-1.5 w-px bg-slate-900 z-10"
-            style={{ left: `calc(0.75rem + ${scrubPct}% - ${scrubPct}% * 24px / 100)` }}
+            className="absolute top-0 bottom-0 w-px bg-slate-900 z-10"
+            style={{ left: `calc(0.75rem + (100% - 1.5rem) * ${scrubPct} / 100)` }}
           >
             <div
-              className="absolute -top-0.5 -translate-x-1/2 h-2 px-1 rounded-sm font-mono text-[9px] text-white inline-flex items-center"
+              className="absolute -top-0.5 -translate-x-1/2 h-3 px-1 rounded-sm font-mono text-[9px] text-white inline-flex items-center"
               style={{ background: SEVERITY_HEX[selected.severity] }}
             >
               {formatT(selected.timestamp_seconds)}
@@ -79,7 +79,7 @@ export default function Timeline({ findings, totalSeconds, selectedId, onSelect 
           </div>
         )}
 
-        <div className="absolute inset-x-3 bottom-1.5 top-1 flex">
+        <div className="absolute inset-x-3 inset-y-1 flex">
           {cells.map((c, i) => (
             <button
               key={i}
@@ -88,7 +88,7 @@ export default function Timeline({ findings, totalSeconds, selectedId, onSelect 
               className="tt h-full"
               style={{
                 width: `${100 / total}%`,
-                background: c.severity ? SEVERITY_HEX[c.severity] : "var(--color-surface-subtle)",
+                background: c.severity ? SEVERITY_HEX[c.severity] : "#F1F5F9",
                 opacity: c.severity ? (selected && selected.finding_id === c.findingId ? 1 : 0.92) : 1,
               }}
             >
@@ -100,18 +100,18 @@ export default function Timeline({ findings, totalSeconds, selectedId, onSelect 
             </button>
           ))}
         </div>
+      </div>
 
-        <div className="absolute inset-x-3 bottom-0 h-2 pointer-events-none">
-          {minMarks.map((s) => (
-            <span
-              key={s}
-              className="absolute top-0 text-[9px] font-mono text-ink-tertiary leading-none"
-              style={{ left: `${(s / total) * 100}%`, transform: "translateX(-50%)" }}
-            >
-              {String(Math.floor(s / 60)).padStart(2, "0")}:00
-            </span>
-          ))}
-        </div>
+      <div className="relative h-4 px-3 pb-1 pointer-events-none">
+        {minMarks.map((s) => (
+          <span
+            key={s}
+            className="absolute top-0 text-[9px] font-mono text-slate-400 leading-none"
+            style={{ left: `calc(${(s / total) * 100}% * (100% - 1.5rem) / 100% + 0.75rem)`, transform: "translateX(-50%)" }}
+          >
+            {String(Math.floor(s / 60)).padStart(2, "0")}:00
+          </span>
+        ))}
       </div>
     </footer>
   );
