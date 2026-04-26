@@ -1,11 +1,12 @@
 "use client";
 
-import { Check, FileText, Flag, Printer, X } from "lucide-react";
+import { Check, FileText, Flag, X } from "lucide-react";
 
 import type { Finding } from "@/types/findings";
 import { SEVERITY_HEX, SEVERITY_LABEL, confidencePercent } from "@/lib/severity";
 import { findingTitle } from "@/lib/format";
 import EvidenceClipPlayer from "./EvidenceClipPlayer";
+import ExportButtons from "./ExportButtons";
 import TelemetryInspector from "./TelemetryInspector";
 import Section from "./Section";
 import ConfRow from "./ConfRow";
@@ -196,14 +197,7 @@ export default function DetailPanel({
       </div>
 
       <div className="border-t border-border bg-surface-panel p-3 flex flex-col gap-2 no-print">
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="h-9 inline-flex items-center justify-center gap-2 rounded-md bg-slate-900 text-white text-[12px] font-medium hover:bg-black transition-colors"
-        >
-          <Printer size={13} />
-          Print this finding
-        </button>
+        <ExportButtons variant="primary" placement="above" />
         <div className="flex gap-2">
           <button
             type="button"

@@ -4,7 +4,6 @@ import Link from "next/link";
 import { ArrowLeft, Settings } from "lucide-react";
 import type { RunMetadata } from "@/types/metadata";
 import { SEVERITY_HEX } from "@/lib/severity";
-import ExportButtons from "./ExportButtons";
 
 export default function Header({ meta }: { meta: RunMetadata | null }) {
   const total = meta?.total_findings ?? 0;
@@ -43,7 +42,6 @@ export default function Header({ meta }: { meta: RunMetadata | null }) {
       </div>
 
       <div className="flex-1 flex items-center justify-end gap-3">
-        <ExportButtons />
         <button
           type="button"
           aria-label="Settings"
