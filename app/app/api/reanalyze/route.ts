@@ -21,6 +21,23 @@ export async function POST() {
     }
   }
 
+  // Demo path: always run a clean pipeline so the audience sees real Marengo
+  // indexing, real text-embedding calls, and real Pegasus describes — not
+  // disk caches ticking by in milliseconds. Iteration / dev still benefits
+  // from caches via the `python -m pipeline.run_all` CLI default.
+  const cacheFiles = [
+    path.join(repoRoot, "out", "marengo_clip_embeddings.json"),
+    path.join(repoRoot, "out", "marengo_text_embeddings.json"),
+    path.join(repoRoot, "out", "pegasus_responses.json"),
+  ];
+  for (const f of cacheFiles) {
+    try {
+      fs.unlinkSync(f);
+    } catch {
+      // missing is fine
+    }
+  }
+
   const isWin = process.platform === "win32";
   const venvPython = isWin
     ? path.join(repoRoot, ".venv", "Scripts", "python.exe")

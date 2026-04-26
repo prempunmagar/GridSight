@@ -353,9 +353,10 @@ function ConfirmReanalyze({
           <div className="min-w-0">
             <div className="text-[15px] font-semibold text-ink-primary">Re-analyze the canonical demo run?</div>
             <p className="text-[12.5px] text-ink-secondary mt-1 leading-relaxed">
-              Spawns the pipeline against <span className="font-mono">data/curated/demo_video.mp4</span> and{" "}
-              <span className="font-mono">data/telemetry/demo_video_telemetry.csv</span>. Burns AWS Bedrock credits
-              (~$5) and takes 5–15 min. Existing findings will be overwritten when complete.
+              Runs the full pipeline against <span className="font-mono">data/curated/demo_video.mp4</span> and{" "}
+              <span className="font-mono">data/telemetry/demo_video_telemetry.csv</span>. All disk caches (Marengo
+              index, text embeddings, Pegasus responses) are cleared first so every stage hits AWS — burns ~$5 of
+              Bedrock credits and takes 5–15 min. Existing findings are overwritten when complete.
             </p>
             <p className="text-[11.5px] text-ink-tertiary mt-2">
               Anti-goal §4.2: do not run during the live stage demo. Pre-stage demo prep only.
