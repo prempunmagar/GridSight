@@ -1,26 +1,53 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@theme {
+  --color-critical: #DC2626;
+  --color-high: #EA580C;
+  --color-moderate: #D97706;
+  --color-low: #475569;
+  --color-intact: #16A34A;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-canvas: #FAFAFA;
+  --color-panel: #FFFFFF;
+  --color-subtle: #F1F5F9;
+  --color-border-default: #E2E8F0;
+
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-tertiary: #94A3B8;
+
+  --color-brand: #0369A1;
+
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  background: var(--color-canvas);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans), system-ui, sans-serif;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes pin-pulse {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  100% { transform: scale(2.4); opacity: 0;   }
 }
+
+.pin-pulse-ring {
+  animation: pin-pulse 1.6s ease-out infinite;
+  transform-origin: center;
+}
+
+/* Leaflet polyline + marker overrides keep the engineering register */
+.leaflet-container {
+  background: #F8FAFC;
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+@media print {
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  body { background: white; }
+}
+
+.print-only { display: none; }
