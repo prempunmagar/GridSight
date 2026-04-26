@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environment
+.env
+.env.local
+*.pem
+
+# Large source data (regenerable)
+data/raw/
+data/curated/demo_video.mp4
+
+# Pipeline working directories (out/ is tracked, see Section 1)
+data/clips_working/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# AWS credentials (defense in depth — never commit these)
+.aws/
+credentials
