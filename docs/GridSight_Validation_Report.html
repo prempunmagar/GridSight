@@ -391,6 +391,13 @@
     GridSight's anomaly detection was evaluated against <strong>15 manually-labeled ground truth anomalies</strong> (8 insulator damage, 7 vegetation encroachment) on 13:32 of curated 1080p drone footage at 345&nbsp;kV (MVCD 4.3&nbsp;ft).
   </p>
 
+  <div class="callout">
+    <div class="callout-label">Input data context</div>
+    The validation input is curated public drone footage, not a controlled utility inspection flight. The camera path, standoff distance, zoom level, asset dwell time, and original telemetry are not under our control.
+    As a result, some defects are only clearly visible as the camera passes them — sometimes for 1–4 seconds.
+    In a production inspection program, the drone would fly a planned route around each tower and capture longer, steadier views with original telemetry attached.
+  </div>
+
   <div class="headline-grid">
     <div class="metric-card win">
       <div class="metric-label">Clip-normalized F1</div>
@@ -434,9 +441,9 @@
 
   <h2><span class="h2-num">·</span> What the set establishes</h2>
   <p>
-    GridSight produces fixed 15-second evidence clips, not frame-level event boundaries.
+    GridSight's job is to surface the right 15-second evidence clip for an inspector, not to predict the exact first and last frame of a defect in imperfect public footage.
     Under the submission-facing clip-normalized read — where ground-truth windows shorter than the evidence clip are expanded to the clip duration before applying the same IoU ≥ 0.5 rule — aggregate F1 is <strong>0.42</strong>, and vegetation F1 is <strong>0.62</strong>.
-    The stricter raw-window IoU score remains <strong>0.17</strong> and is reported unchanged.
+    The stricter raw-window IoU score remains <strong>0.17</strong> and is reported unchanged as a conservative boundary-localization score.
     Class assignment on matched pairs is exact, localization is within ±2 seconds where matched, and there are no under-classification errors on matched pairs.
   </p>
 
@@ -983,6 +990,7 @@ union = (a_end - a_start) + (g_end - g_start) - intersection</code></pre>
   <h2><span class="h2-num">8.2</span> Data limitations</h2>
   <ul>
     <li><strong>Curated demo video</strong> is 13:32 of stitched 1080p footage from publicly available drone inspection videos. Per Decision D15, the cut is deliberately damage-rich; field damage rates per mile are substantially lower.</li>
+    <li><strong>Public footage is not a controlled inspection flight.</strong> The source videos were not flown for this project, so the camera route, standoff distance, viewing angle, zoom level, and time spent on each asset vary. Several labels mark the brief moment where the anomaly is most visible rather than a long inspection-quality dwell. This is why the primary submission metric evaluates whether GridSight retrieved the correct evidence clip.</li>
     <li><strong>Telemetry is generated</strong>, not captured by a real drone. Format is real (DJI SRT-compatible CSV); per-second values trace a chosen US transmission corridor at <strong>345 kV</strong>. Coordinates are representative, not measurements of where the YouTube footage was originally captured. This is disclosed in the README, demo video, and live demo.</li>
     <li><strong>Ground truth is mostly tier <code>low</code>:</strong> 9 of 15 (60%). Pegasus's drone-altitude visual discrimination is least confident at the low-severity boundary — most of the FN count is the system being conservative on subtle defects.</li>
   </ul>

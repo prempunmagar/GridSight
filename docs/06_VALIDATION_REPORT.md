@@ -11,6 +11,8 @@
 
 GridSight's anomaly detection was evaluated against 15 manually-labeled ground truth anomalies (8 insulator damage, 7 vegetation encroachment) on 13:32 of curated 1080p drone footage at 345 kV (MVCD 4.3 ft).
 
+**Input data context.** The validation input is curated public drone footage, not a controlled utility inspection flight. The camera path, standoff distance, zoom level, asset dwell time, and original telemetry are not under our control. As a result, some defects are only clearly visible as the camera passes them — sometimes for 1–4 seconds. In a production inspection program, the drone would fly a planned route around each tower and capture longer, steadier views with original telemetry attached.
+
 | Headline metric | Value |
 |---|---:|
 | Aggregate F1 with clip-normalized GT windows (submission-facing) | **0.42** |
@@ -21,7 +23,7 @@ GridSight's anomaly detection was evaluated against 15 manually-labeled ground t
 | Class confusion errors (insulator ↔ vegetation on matched pairs) | **0** |
 | Localization error (timestamp) where matched | within ±2 sec |
 
-**What the set establishes.** The system produces fixed 15-second evidence clips, not frame-level event boundaries. Under the submission-facing clip-normalized read — where ground-truth windows shorter than the evidence clip are expanded to the clip duration before applying the same IoU ≥ 0.5 rule — aggregate F1 is **0.42**, and vegetation F1 is **0.62**. The stricter raw-window IoU score remains **0.17** and is reported unchanged. Class assignment on matched pairs is exact, localization is within ±2 seconds where matched, and there are no under-classification errors on matched pairs.
+**What the set establishes.** GridSight's job is to surface the right 15-second evidence clip for an inspector, not to predict the exact first and last frame of a defect in imperfect public footage. Under the submission-facing clip-normalized read — where ground-truth windows shorter than the evidence clip are expanded to the clip duration before applying the same IoU ≥ 0.5 rule — aggregate F1 is **0.42**, and vegetation F1 is **0.62**. The stricter raw-window IoU score remains **0.17** and is reported unchanged as a conservative boundary-localization score. Class assignment on matched pairs is exact, localization is within ±2 seconds where matched, and there are no under-classification errors on matched pairs.
 
 **What the set does not establish.** With 15 single-labeler anomalies on one cut of footage, per-class F1 has two-significant-figure precision and a single re-labeling shifts it noticeably. We cannot rule out implicit query fitting (no held-out test fold). GPS error against true field coordinates cannot be measured because the source footage's original telemetry is unknown. We cannot characterize the system below 1080p, in snow / fog / night, or on monopole / wood-pole assets — these are out of scope by construction.
 
@@ -400,6 +402,7 @@ GridSight is scoped to:
 ### 8.2 Data limitations
 
 - **Curated demo video** is 13:32 of stitched 1080p footage from publicly available drone inspection videos. Per Decision D15, the cut is deliberately damage-rich; field damage rates per mile are substantially lower.
+- **Public footage is not a controlled inspection flight.** The source videos were not flown for this project, so the camera route, standoff distance, viewing angle, zoom level, and time spent on each asset vary. Several labels mark the brief moment where the anomaly is most visible rather than a long inspection-quality dwell. This is why the primary submission metric evaluates whether GridSight retrieved the correct evidence clip.
 - **Telemetry is generated**, not captured by a real drone. Format is real (DJI SRT-compatible CSV); per-second values trace a chosen US transmission corridor at **345 kV**. Coordinates are representative, not measurements of where the YouTube footage was originally captured. This is disclosed in the README, demo video, and live demo.
 - **Ground truth anomalies are mostly tier `low`:** 9 of 15 (60%). Pegasus's drone-altitude visual discrimination is least confident at the low-severity boundary — most of the FN count is the system being conservative on subtle defects.
 
